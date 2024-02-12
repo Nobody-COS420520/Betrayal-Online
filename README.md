@@ -1,6 +1,7 @@
 
 Betrayal Online                                                
-&emsp;By Nobody (Group 3):&ensp;Caleb Corlett, Ryan Nodarse, Patrick Storer, Ethan Wyman 
+&emsp;By Nobody (Group 3):&ensp;Caleb Corlett, Ryan Nodarse, Patrick Storer, Ethan         
+&emsp;Wyman 
 ---
 
 ##### A video game version of the board game, Betrayal at the House on the Hill.
