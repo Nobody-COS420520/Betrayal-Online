@@ -15,4 +15,5 @@ COPY ./assets ./assets
 
 
 ENTRYPOINT ["/docker_shell.sh"]
-#CMD ["python", "betrayal.py"]
+#CMD ["ls"]
+#CMD ["python","betrayal.py"]

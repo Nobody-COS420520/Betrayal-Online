@@ -1,3 +1,14 @@
-# COS420-520-Group-3
 
-Video game version of the board game, Betrayal at the House on the Hill.
+Betrayal Online                                                
+&emsp;By Nobody (Group 3):&ensp;Caleb Corlett, Ryan Nodarse, Patrick Storer, Ethan Wyman 
+---
+
+##### A video game version of the board game, Betrayal at the House on the Hill.
+
+ 
+
+Github:
+https://github.com/CalebCOR/BETRAYAL-By-Nobody
+
+Jira:
+https://calebcor.atlassian.net/jira/software/projects/BE/boards/3

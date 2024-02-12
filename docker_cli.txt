@@ -4,7 +4,7 @@ Build Image:
 docker build -t betrayal_image .
 
 Deploy Image In Container (will start container once):
-docker run -it --name betrayal --mount type=bind,source="$(pwd)"/src,target=/src --mount type=bind,source="$(pwd)"/tests,target=/tests betrayal_image betrayal.py
+docker run -it --name betrayal --mount type=bind,source=/src,target=/src --mount type=bind,source=/tests,target=/tests betrayal_image betrayal.py
 
 Start Container:
 docker start -i betrayal
