@@ -3,6 +3,10 @@
 
 from src import example
 
+WIDTH = 800
+HEIGHT = 600
+TITLE = "Betrayal Online"
+
 
 def main():
     """The Main Function"""

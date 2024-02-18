@@ -8,6 +8,8 @@ Betrayal Online
 
  
 
+Our Design Documents located in "/Project Documents"
+
 Github:
 https://github.com/CalebCOR/BETRAYAL-By-Nobody
 
