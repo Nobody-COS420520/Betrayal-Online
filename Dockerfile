@@ -12,6 +12,9 @@ COPY ./assets ./assets
 #COPY ./lib ./lib
 #COPY ./src ./src
 
+#ENV DISPLAY=:0
+#0 is default location for DISPLAY
+ENV PULSE_SERVER=/tmp/PulseServer
 
 
 ENTRYPOINT ["/docker_shell.sh"]
