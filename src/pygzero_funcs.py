@@ -1,14 +1,16 @@
 """Module for functions related to Pygame 0 operations"""
 
+
 import os
-import pgzhelper
+from . import pgzhelper
+
 #import pygame as pg
 
 main_dir = os.path.split(os.path.abspath(__file__))[0]
 
 """
 def load_image(file):
-    """loads an image, prepares it for play"""
+    # 'NOTE this line was in triple quotations' loads an image, prepares it for play
     file = os.path.join(main_dir, "data", file)
     try:
         surface = pg.image.load(file)
