@@ -8,7 +8,7 @@ ADD betrayal.py .
 ADD docker_shell.sh .
 
 
-COPY ./assets ./assets
+COPY ./images ./images
 #COPY ./lib ./lib
 #COPY ./src ./src
 

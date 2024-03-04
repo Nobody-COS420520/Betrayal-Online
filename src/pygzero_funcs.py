@@ -1,12 +1,20 @@
 """Module for functions related to Pygame 0 operations"""
+# pylint: disable=E0401, W0401
 
+#import os
+#import pgzrun
+#from pgzhelper import *
 
-import os
-from . import pgzhelper
+# import pygame as pg
 
-#import pygame as pg
+#main_dir = os.path.split(os.path.abspath(__file__))[0]
 
-main_dir = os.path.split(os.path.abspath(__file__))[0]
+"""
+def draw():
+     PGZero uses this func to draw the screen # this line was triple quoted out
+    screen.fill((255, 0, 0))
+"""
+
 
 """
 def load_image(file):
