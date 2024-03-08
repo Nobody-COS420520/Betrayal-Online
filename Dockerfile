@@ -1,8 +1,8 @@
 FROM python:latest
 
-RUN pip install pgzero
-RUN pip install pylint
-RUN pip install pytest
+ADD requirements.txt .
+RUN pip install -r requirements.txt
+
 
 ADD betrayal.py .
 ADD docker_shell.sh .
