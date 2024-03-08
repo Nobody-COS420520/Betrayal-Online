@@ -13,3 +13,5 @@ docker run -it -e DISPLAY=*Xquartz IP address* --name betrayal --mount type=bind
 
 Start Container:
 docker start -i betrayal
+
+aeiouaeiouaeiou
