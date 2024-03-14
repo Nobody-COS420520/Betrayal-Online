@@ -1,13 +1,164 @@
 """Main Module for Betrayal at the House on the Hill by Nobody"""
 
-WIDTH = 960
-HEIGHT = 540
-TITLE = "Betrayal Online"
+
+def on_mouse_move(pos, rel, buttons):
+    """    
+        pos = tuple (x,y) that gives location that the mouse pointer moved to
+        rel = tuple (delta_x, delta_y) that represents the change in the mouse pointer's position
+        buttons = set of mouse enum values indicating the buttons that were down during the moved
+    """
+    global GAME_STAGE
+
+    print("mouse move:  " + str(pos) + "  " + str(rel) + "  " + str(buttons))
+
+    match(GAME_STAGE):
+        case 2:
+            prev = get_grid_loc((pos[0]-rel[0], pos[1]-rel[1]))
+            current = get_grid_loc(pos)
+            if current != prev:
+                #   validity check if current is in the range of possible GRID squares
+                if current[0] < len(GRID) and current[1] < len(GRID[0]):
+                    # GRID[current[0]][current[1]].on_hover(current[0], current[1])
+                    GRID[current[0]][current[1]].on_hover()
+                #   this validity check is necessary if mouse is reentering grid from outside
+                if prev[0] < len(GRID) and prev[1] < len(GRID[0]):
+                    GRID[prev[0]][prev[1]].on_offhover()
+
+
+def on_mouse_down(pos, button):
+    """
+        pos = tuple (x,y) that gives location of the mouse pointer when the button was pressed
+        button = mouse enum value indicating which button was pressed
+    """
+    global GAME_STAGE
+
+    print("mouse down:  " + str(pos) + "  " + str(button))
+
+    match(GAME_STAGE):
+        case 2:
+            current = get_grid_loc(pos)
+            #   validity check if left mousebutton and current is in the range of possible GRID squares
+            if button == 1 and current[0] < len(GRID) and current[1] < len(GRID[0]):
+                GRID[current[0]][current[1]].on_mousedown(
+                    current[0], current[1])
+
+
+def on_mouse_up(pos, button):
+    """
+        pos = tuple (x,y) that gives location of the mouse pointer when the button was released
+        button = mouse enum value indicating the button that was released
+    """
+    global GAME_STAGE
+
+    print("mouse up:  " + str(pos) + "  " + str(button))
+
+    match(GAME_STAGE):
+        case 2:
+            current = get_grid_loc(pos)
+            #   validity check if left mousebutton and current is in the range of possible GRID squares
+            if button == 1 and current[0] < len(GRID) and current[1] < len(GRID[0]):
+                GRID[current[0]][current[1]].on_mouseup(current[0], current[1])
+
+
+def on_key_down(key, mod, unicode):
+    """
+        key = integer indicating the key that was pressed
+        mod = bitmask of modifier keys that are down
+        unicode = the character that was typed *includes control characters?*
+                *Will return empty string if key doesn't correspond to a Unicode char
+    """
+
+    global GAME_STAGE
+
+    print("key down:  " + str(key) + "  " + unicode)
+
+    match(GAME_STAGE):
+        case 2:                     # midgame stage
+            match(key):
+                case 1073741916:    # numpad 4
+                    cam_move_hori(150)
+                case 1073741918:    # numpad 6
+                    cam_move_hori(-150)
+                case 1073741920:    # numpad 8
+                    cam_move_vert(150)
+                case 1073741914:    # numpad 2
+                    cam_move_vert(-150)
+                case 1073741921:    # numpad 9
+                    zoom(1.25)
+                case 1073741919:    # numpad 7
+                    zoom(0.8)
+
+
+def on_key_up(key, mod):
+    """
+        key = integer indicating the key that was released
+        mod = bitmask of modifier keys that are down
+    """
+    global GAME_STAGE
+
+    print("key up:  " + str(key) + "  " + str(mod))
+
+    match(GAME_STAGE):
+        case 2:                     # midgame stage
+            match(key):
+                case 113:           # q
+                    # reset midgame stage
+                    setup_midgame(WIDTH, HEIGHT)
+
+        case default:               # no game stage
+            match(key):
+                case 113:           # q
+                    # enter midgame stage
+                    GAME_STAGE = 2
+
+
+def update(time_elapsed):
+    """
+        time_elapsed = time in ms since previous call to update()
+    """
+
+    global GAME_STAGE
+    global PREV_GAME_STAGE
+
+    if GAME_STAGE == -1:
+        GAME_STAGE = 0
+
+    # temporary, made to go directly into specific stage
+    # GAME_STAGE = 2
+
+    #   Detects whenever game_stage changes (used for game_stage setup)
+    #   NEW STAGE SWITCH
+    if (GAME_STAGE != PREV_GAME_STAGE):
+        match GAME_STAGE:
+            case 2:
+                setup_midgame(WIDTH, HEIGHT)
+    #   setting up pre_game_stage to be used to detect changes to game_stage
+    PREV_GAME_STAGE = GAME_STAGE
 
 
 def draw():
-    """ pgzero's main(), put code in here """
-    print("\nHello World!\n")
+    """ 
+        Gets called automatically whenever something needs to be redrawn.
+        Include all of the .draw() methods in here
+    """
+
+    global GAME_STAGE
+    global GRID
+
+    screen.clear()
+
+    match GAME_STAGE:
+        case 2:  # case: Midgame
+            bg.draw()
+            if GRID:
+                # pylint: disable-next=C0200
+                for x in range(len(GRID)):
+                    for y in range(len(GRID[x])):
+                        if GRID[x][y].highlight_flag != 1:
+                            screen.draw.rect(GRID[x][y].rect, (255, 0, 0))
+                        else:
+                            screen.draw.rect(
+                                GRID[x][y].rect, GRID[x][y].highlight_color)
 
 
 pgzrun.go()

@@ -9,11 +9,11 @@ ADD docker_shell.sh .
 
 
 COPY ./images ./images
+COPY ./sounds ./sounds
 #COPY ./lib ./lib
 #COPY ./src ./src
 
 #ENV DISPLAY=:0
-#0 is default location for DISPLAY
 ENV PULSE_SERVER=/tmp/PulseServer
 
 
