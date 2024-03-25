@@ -1,5 +1,7 @@
 """Main Module for Betrayal at the House on the Hill by Nobody"""
 
+# TODO rename all references to midgame.py into s_midgame.py
+
 
 def on_mouse_move(pos, rel, buttons):
     """    
@@ -12,7 +14,16 @@ def on_mouse_move(pos, rel, buttons):
     print("mouse move:  " + str(pos) + "  " + str(rel) + "  " + str(buttons))
 
     match(GAME_STAGE):
-        case 2:
+        case 1:     # MainMenu stage
+            prev = Menu_Tree.get_menu_object(
+                STAGEOBJ, (pos[0]-rel[0], pos[1]-rel[1]))
+            current = Menu_Tree.get_menu_object(STAGEOBJ, pos)
+            if current != prev:
+                if current is not None:
+                    current.on_hover(current)
+                if prev is not None:
+                    prev.on_offhover(prev)
+        case 2:     # Midgame stage
             prev = get_grid_loc((pos[0]-rel[0], pos[1]-rel[1]))
             current = get_grid_loc(pos)
             if current != prev:
@@ -35,7 +46,9 @@ def on_mouse_down(pos, button):
     print("mouse down:  " + str(pos) + "  " + str(button))
 
     match(GAME_STAGE):
-        case 2:
+        case 1:  # MainMenu Stage
+            pass
+        case 2:  # Midgame Stage
             current = get_grid_loc(pos)
             #   validity check if left mousebutton and current is in the range of possible GRID squares
             if button == 1 and current[0] < len(GRID) and current[1] < len(GRID[0]):
@@ -53,7 +66,13 @@ def on_mouse_up(pos, button):
     print("mouse up:  " + str(pos) + "  " + str(button))
 
     match(GAME_STAGE):
-        case 2:
+        case 1:                             # MainMenu Stage
+            if button == 1:
+                current = Menu_Tree.get_menu_object(STAGEOBJ, pos)
+                if current is not None:
+                    current.on_mouseup(current)
+            pass
+        case 2:  # Midgame Stage
             current = get_grid_loc(pos)
             #   validity check if left mousebutton and current is in the range of possible GRID squares
             if button == 1 and current[0] < len(GRID) and current[1] < len(GRID[0]):
@@ -73,6 +92,8 @@ def on_key_down(key, mod, unicode):
     print("key down:  " + str(key) + "  " + unicode)
 
     match(GAME_STAGE):
+        case 1:                     # mainmenu stage
+            pass
         case 2:                     # midgame stage
             match(key):
                 case 1073741916:    # numpad 4
@@ -99,7 +120,9 @@ def on_key_up(key, mod):
     print("key up:  " + str(key) + "  " + str(mod))
 
     match(GAME_STAGE):
-        case 2:                     # midgame stage
+        case 1:  # MainMenu Stage
+            pass
+        case 2:                     # Midgame Stage
             match(key):
                 case 113:           # q
                     # reset midgame stage
@@ -119,9 +142,10 @@ def update(time_elapsed):
 
     global GAME_STAGE
     global PREV_GAME_STAGE
+    global STAGEOBJ
 
     if GAME_STAGE == -1:
-        GAME_STAGE = 0
+        GAME_STAGE = 1
 
     # temporary, made to go directly into specific stage
     # GAME_STAGE = 2
@@ -130,7 +154,11 @@ def update(time_elapsed):
     #   NEW STAGE SWITCH
     if (GAME_STAGE != PREV_GAME_STAGE):
         match GAME_STAGE:
+            case 1:
+                STAGEOBJ = MainMenu()
             case 2:
+                print("\n" + "going into midgame" + "\n")
+                STAGEOBJ = None
                 setup_midgame(WIDTH, HEIGHT)
     #   setting up pre_game_stage to be used to detect changes to game_stage
     PREV_GAME_STAGE = GAME_STAGE
@@ -148,8 +176,18 @@ def draw():
     screen.clear()
 
     match GAME_STAGE:
-        case 2:  # case: Midgame
-            bg.draw()
+        case 1:  # case: main_menu
+            if (STAGEOBJ is not None and STAGEOBJ.actors is not None):
+                for x in STAGEOBJ.actors:
+                    x.draw()
+                STAGEOBJ.option_tree.draw()
+                for x in STAGEOBJ.option_tree.contents:
+                    if x.highlight_flag != 1:
+                        screen.draw.rect(x.rect, (255, 0, 0))
+                    else:
+                        screen.draw.rect(x.rect, x.text.highlight_color)
+        case 2:  # case: midgame
+            midgame_bg.draw()
             if GRID:
                 # pylint: disable-next=C0200
                 for x in range(len(GRID)):

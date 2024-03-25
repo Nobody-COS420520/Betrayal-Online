@@ -9,7 +9,7 @@ GRID_SIZE = 128     #   Size of each grid square (px)
 GRID_SCALE = 1      #   Scale of the grid (% decimal form)
 GRID = []           #   2d Array of references to each square's GridSquare class
                     #   (initialized in initialize_grid())
-bg = Actor("bo_specific/dark_wood_texture_1920x1080.jpg")
+midgame_bg = Actor("bo_specific/dark_wood_texture_1920x1080.jpg")
 
 class GridSquare():
     """ Holds functions for a Grid Square's events and references to neighbor Grid Squares"""

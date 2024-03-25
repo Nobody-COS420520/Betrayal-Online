@@ -10,6 +10,7 @@ ADD docker_shell.sh .
 
 COPY ./images ./images
 COPY ./sounds ./sounds
+COPY ./fonts ./fonts
 #COPY ./lib ./lib
 #COPY ./src ./src
 
