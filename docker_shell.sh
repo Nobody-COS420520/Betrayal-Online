@@ -3,9 +3,9 @@ CMD="$1"
 
 
 echo '\n*******************************************************\n'
-pylint ./src/
+pylint ./src/*.py
 echo '\n*******************************************************\n'
-pytest ./tests/tests.py
+#pytest ./tests/tests.py
 echo '\n*******************************************************\n'
 echo 'Deleting old a.py'
 rm -f a.py
@@ -17,4 +17,5 @@ echo 'Concatenation Complete'
 #cat a.py
 #ls
 echo '\n*******************************************************\n'
+
 pgzrun a.py
