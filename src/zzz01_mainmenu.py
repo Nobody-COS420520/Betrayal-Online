@@ -75,6 +75,5 @@ class MainMenu():
     @staticmethod
     def online_mouseup(p_menu_object):
         """ Goes into GAME_STAGE 2 (Midgame) when 'ONLINE' gets pressed """
-        # TODO change this when midgame gets modernized
         global GAME_STAGE
         GAME_STAGE = 2

@@ -1,7 +1,6 @@
 """Main Module for Betrayal at the House on the Hill by Nobody"""
 
 
-
 def on_mouse_move(pos, rel, buttons):
     """    
         pos = tuple (x,y) that gives location that the mouse pointer moved to
@@ -75,7 +74,8 @@ def on_mouse_up(pos, button):
             current = STAGEOBJ.get_grid_loc(pos)
             #   validity check if left mousebutton and current is in the range of possible GRID squares
             if button == 1 and current[0] < len(STAGEOBJ.grid) and current[1] < len(STAGEOBJ.grid[0]):
-                STAGEOBJ.grid[current[0]][current[1]].on_mouseup(current[0], current[1])
+                STAGEOBJ.grid[current[0]][current[1]].on_mouseup(
+                    current[0], current[1])
 
 
 def on_key_down(key, mod, unicode):
@@ -169,8 +169,14 @@ def update(time_elapsed):
     global STAGEOBJ
 
     # On program start: set GAME_STAGE to 1 (MainMenu)
+    # Also check if this is first time opening and create everything important
     if GAME_STAGE == -1:
         GAME_STAGE = 1
+        if (not os.path.exists('src/db/char.db')):
+            db = DBManager("src/db/char.db")
+            db.create_all_db()
+            db.close()
+            db = None
 
     # temporary, made to go directly into specific stage
     # GAME_STAGE = 2
@@ -217,7 +223,8 @@ def draw():
                 for x in range(len(STAGEOBJ.grid)):
                     for y in range(len(STAGEOBJ.grid[x])):
                         if STAGEOBJ.grid[x][y].highlight_flag != 1:
-                            screen.draw.rect(STAGEOBJ.grid[x][y].rect, (255, 0, 0))
+                            screen.draw.rect(
+                                STAGEOBJ.grid[x][y].rect, (255, 0, 0))
                         else:
                             screen.draw.rect(
                                 STAGEOBJ.grid[x][y].rect, STAGEOBJ.grid[x][y].highlight_color)
