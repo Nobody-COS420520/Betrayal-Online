@@ -4,7 +4,7 @@ import sys
 sys.path.append('..')
 sys.path.append('../src')
 from src import example
-from src import midgame
+from src import zzz02_midgame
 
 GRID_SIZE = 150
 GRID_OFFSET_X = 50

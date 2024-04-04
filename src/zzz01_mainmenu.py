@@ -2,7 +2,7 @@
 
 
 class MainMenu():
-    """ Class holding properties of the mainmenu Game Stage """
+    """ Singleton class holding properties of the mainmenu Game Stage (stage number 1) """
 
     actors = None  # Holds list of Actor objects for main menu
     option_tree = None  # Holds tree vector for each menu item

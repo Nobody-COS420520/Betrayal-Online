@@ -1,14 +1,14 @@
 
 
 Build Image:
-docker build -t betrayal_image .
+docker build -t betray:latest .
 
 Deploy Image In Container (will start container once):
 *Windows*
-docker run -it -e DISPLAY=:0 --name betrayal --volume=\\wsl.localhost\Ubuntu\mnt\wslg:/tmp --mount type=bind,source="${pwd}"/src,target=/src --mount type=bind,source="${pwd}"/tests,target=/tests betrayal_image betrayal.py
+docker run -it -e DISPLAY=:0 --name betrayal --volume=\\wsl.localhost\Ubuntu\mnt\wslg:/tmp --mount type=bind,source="${pwd}"/src,target=/src --mount type=bind,source="${pwd}"/tests,target=/tests betray betrayal.py
 
 *MacOS*
-docker run -it -e DISPLAY=*Xquartz IP address* --name betrayal --mount type=bind,source="${pwd}"/src,target=/src --mount type=bind,source="${pwd}"/tests,target=/tests betrayal_image betrayal.py
+docker run -it -e DISPLAY=*Xquartz IP address* --name betrayal --mount type=bind,source="${pwd}"/src,target=/src --mount type=bind,source="${pwd}"/tests,target=/tests betray betrayal.py
 
 
 Start Container:
