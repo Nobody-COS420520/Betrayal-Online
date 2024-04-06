@@ -15,6 +15,7 @@ class DBManager():
         self.conn = sqlite3.connect(self.url)
 
     def create_character_db(self):
+        """ Creates Characters table that stores all character's gameplay stats """
         c = self.conn.cursor()
         c.execute("""
                   CREATE TABLE Characters(
@@ -51,6 +52,7 @@ class DBManager():
         self.conn.commit()
 
     def create_grimoire_db(self):
+        """ Creates Grimoire table that includes all character data for the Grimoire mode """
         c = self.conn.cursor()
         c.execute("""CREATE TABLE Grimoire(
                   id INT,
@@ -62,6 +64,14 @@ class DBManager():
                   Birthday TEXT)
                   """)
         self.conn.commit()
+
+    #def create_floortile_db(self):
+    #    """ Creates FloorTile table that includes all character data for the Grimoire mode """
+    #    c = self.conn.cursor()
+    #    c.execute("""CREATE TABLE FloorTile(
+    #              )
+    #              """)
+    #    self.conn.commit()
 
     def retrieve_character_data(self):
         """ Returns list of Tuples containing Character gameplay data and stats """
@@ -76,4 +86,5 @@ class DBManager():
         self.create_grimoire_db()
 
     def close(self):
+        """ Closes the connection to a sqlite3.connection object """
         self.conn.close()
