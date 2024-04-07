@@ -1,0 +1,3 @@
+pgzero
+pylint
+pytest

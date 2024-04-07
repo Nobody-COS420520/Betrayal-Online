@@ -1,19 +1,20 @@
 FROM python:latest
 
-RUN pip install pgzero
-RUN pip install pylint
-RUN pip install pytest
+ADD requirements.txt .
+RUN pip install -r requirements.txt
+
 
 ADD betrayal.py .
 ADD docker_shell.sh .
 
 
-COPY ./assets ./assets
+COPY ./images ./images
+COPY ./sounds ./sounds
+COPY ./fonts ./fonts
 #COPY ./lib ./lib
 #COPY ./src ./src
 
 #ENV DISPLAY=:0
-#0 is default location for DISPLAY
 ENV PULSE_SERVER=/tmp/PulseServer
 
 
