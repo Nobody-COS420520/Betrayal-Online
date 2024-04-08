@@ -1,7 +1,5 @@
 """Main Module for Betrayal at the House on the Hill by Nobody"""
 
-# TODO rename all references to midgame.py into s_midgame.py
-
 
 def on_mouse_move(pos, rel, buttons):
     """    
@@ -24,16 +22,16 @@ def on_mouse_move(pos, rel, buttons):
                 if prev is not None:
                     prev.on_offhover(prev)
         case 2:     # Midgame stage
-            prev = get_grid_loc((pos[0]-rel[0], pos[1]-rel[1]))
-            current = get_grid_loc(pos)
+            prev = STAGEOBJ.get_grid_loc((pos[0]-rel[0], pos[1]-rel[1]))
+            current = STAGEOBJ.get_grid_loc(pos)
             if current != prev:
-                #   validity check if current is in the range of possible GRID squares
-                if current[0] < len(GRID) and current[1] < len(GRID[0]):
-                    # GRID[current[0]][current[1]].on_hover(current[0], current[1])
-                    GRID[current[0]][current[1]].on_hover()
+                #   validity check if current is in the range of possible Midgame.grid squares
+                if current[0] < len(STAGEOBJ.grid) and current[1] < len(STAGEOBJ.grid[0]):
+                    # Midgame.grid[current[0]][current[1]].on_hover(current[0], current[1])
+                    STAGEOBJ.grid[current[0]][current[1]].on_hover()
                 #   this validity check is necessary if mouse is reentering grid from outside
-                if prev[0] < len(GRID) and prev[1] < len(GRID[0]):
-                    GRID[prev[0]][prev[1]].on_offhover()
+                if prev[0] < len(STAGEOBJ.grid) and prev[1] < len(STAGEOBJ.grid[0]):
+                    STAGEOBJ.grid[prev[0]][prev[1]].on_offhover()
 
 
 def on_mouse_down(pos, button):
@@ -49,10 +47,10 @@ def on_mouse_down(pos, button):
         case 1:  # MainMenu Stage
             pass
         case 2:  # Midgame Stage
-            current = get_grid_loc(pos)
-            #   validity check if left mousebutton and current is in the range of possible GRID squares
-            if button == 1 and current[0] < len(GRID) and current[1] < len(GRID[0]):
-                GRID[current[0]][current[1]].on_mousedown(
+            current = STAGEOBJ.get_grid_loc(pos)
+            #   validity check if left mousebutton and current is in the range of possible Midgame.grid squares
+            if button == 1 and current[0] < len(STAGEOBJ.grid) and current[1] < len(STAGEOBJ.grid[0]):
+                STAGEOBJ.grid[current[0]][current[1]].on_mousedown(
                     current[0], current[1])
 
 
@@ -73,10 +71,11 @@ def on_mouse_up(pos, button):
                     current.on_mouseup(current)
             pass
         case 2:  # Midgame Stage
-            current = get_grid_loc(pos)
+            current = STAGEOBJ.get_grid_loc(pos)
             #   validity check if left mousebutton and current is in the range of possible GRID squares
-            if button == 1 and current[0] < len(GRID) and current[1] < len(GRID[0]):
-                GRID[current[0]][current[1]].on_mouseup(current[0], current[1])
+            if button == 1 and current[0] < len(STAGEOBJ.grid) and current[1] < len(STAGEOBJ.grid[0]):
+                STAGEOBJ.grid[current[0]][current[1]].on_mouseup(
+                    current[0], current[1])
 
 
 def on_key_down(key, mod, unicode):
@@ -97,17 +96,17 @@ def on_key_down(key, mod, unicode):
         case 2:                     # midgame stage
             match(key):
                 case 1073741916:    # numpad 4
-                    cam_move_hori(150)
+                    STAGEOBJ.cam_move_hori(150)
                 case 1073741918:    # numpad 6
-                    cam_move_hori(-150)
+                    STAGEOBJ.cam_move_hori(-150)
                 case 1073741920:    # numpad 8
-                    cam_move_vert(150)
+                    STAGEOBJ.cam_move_vert(150)
                 case 1073741914:    # numpad 2
-                    cam_move_vert(-150)
+                    STAGEOBJ.cam_move_vert(-150)
                 case 1073741921:    # numpad 9
-                    zoom(1.25)
+                    STAGEOBJ.zoom(1.25)
                 case 1073741919:    # numpad 7
-                    zoom(0.8)
+                    STAGEOBJ.zoom(0.8)
 
 
 def on_key_up(key, mod):
@@ -120,19 +119,44 @@ def on_key_up(key, mod):
     print("key up:  " + str(key) + "  " + str(mod))
 
     match(GAME_STAGE):
-        case 1:  # MainMenu Stage
-            pass
+        case 1:                     # MainMenu Stage
+            match(key):
+                case 119:           # w
+                    match(mod):
+                        case 4097:  # left shift
+                            GAME_STAGE = 2
+                case 122:           # Z
+                    match(mod):
+                        case 4097:  # left shift
+                            GAME_STAGE = 0
         case 2:                     # Midgame Stage
             match(key):
-                case 113:           # q
-                    # reset midgame stage
-                    setup_midgame(WIDTH, HEIGHT)
+                case 113:           # Q
+                    match(mod):
+                        case 4097:  # left shift
+                            GAME_STAGE = 1
+                case 119:           # w
+                    match(mod):
+                        case 4097:  # left shift
+                            # reset midgame stage
+                            STAGEOBJ.setup_midgame()
+                case 122:           # Z
+                    match(mod):
+                        case 4097:  # left shift
+                            GAME_STAGE = 0
 
         case default:               # no game stage
             match(key):
-                case 113:           # q
-                    # enter midgame stage
-                    GAME_STAGE = 2
+                case 113:           # Q
+                    match(mod):
+                        case default:
+                            # enter mainmenu stage
+                            GAME_STAGE = 1
+                case 119:           # W
+                    match(mod):
+                        case default:
+                            # enter midgame stage
+                            GAME_STAGE = 2
 
 
 def update(time_elapsed):
@@ -144,8 +168,15 @@ def update(time_elapsed):
     global PREV_GAME_STAGE
     global STAGEOBJ
 
+    # On program start: set GAME_STAGE to 1 (MainMenu)
+    # Also check if this is first time opening and create everything important
     if GAME_STAGE == -1:
         GAME_STAGE = 1
+        if (not os.path.exists('src/db/char.db')):
+            db = DBManager("src/db/char.db")
+            db.create_all_db()
+            db.close()
+            db = None
 
     # temporary, made to go directly into specific stage
     # GAME_STAGE = 2
@@ -158,8 +189,7 @@ def update(time_elapsed):
                 STAGEOBJ = MainMenu()
             case 2:
                 print("\n" + "going into midgame" + "\n")
-                STAGEOBJ = None
-                setup_midgame(WIDTH, HEIGHT)
+                STAGEOBJ = Midgame()
     #   setting up pre_game_stage to be used to detect changes to game_stage
     PREV_GAME_STAGE = GAME_STAGE
 
@@ -187,16 +217,17 @@ def draw():
                     else:
                         screen.draw.rect(x.rect, x.text.highlight_color)
         case 2:  # case: midgame
-            midgame_bg.draw()
-            if GRID:
+            STAGEOBJ.midgame_bg.draw()
+            if STAGEOBJ.grid:
                 # pylint: disable-next=C0200
-                for x in range(len(GRID)):
-                    for y in range(len(GRID[x])):
-                        if GRID[x][y].highlight_flag != 1:
-                            screen.draw.rect(GRID[x][y].rect, (255, 0, 0))
+                for x in range(len(STAGEOBJ.grid)):
+                    for y in range(len(STAGEOBJ.grid[x])):
+                        if STAGEOBJ.grid[x][y].highlight_flag != 1:
+                            screen.draw.rect(
+                                STAGEOBJ.grid[x][y].rect, (255, 0, 0))
                         else:
                             screen.draw.rect(
-                                GRID[x][y].rect, GRID[x][y].highlight_color)
+                                STAGEOBJ.grid[x][y].rect, STAGEOBJ.grid[x][y].highlight_color)
 
 
 pgzrun.go()
