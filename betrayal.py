@@ -95,18 +95,26 @@ def on_key_down(key, mod, unicode):
             pass
         case 2:                     # midgame stage
             match(key):
-                case 1073741916:    # numpad 4
-                    STAGEOBJ.cam_move_hori(150)
-                case 1073741918:    # numpad 6
-                    STAGEOBJ.cam_move_hori(-150)
-                case 1073741920:    # numpad 8
-                    STAGEOBJ.cam_move_vert(150)
-                case 1073741914:    # numpad 2
-                    STAGEOBJ.cam_move_vert(-150)
                 case 1073741921:    # numpad 9
                     STAGEOBJ.zoom(1.25)
+                case 1073741920:    # numpad 8
+                    STAGEOBJ.cam_move_vert(150)
                 case 1073741919:    # numpad 7
                     STAGEOBJ.zoom(0.8)
+                case 1073741918:    # numpad 6
+                    STAGEOBJ.cam_move_hori(-150)
+                case 1073741916:    # numpad 4
+                    STAGEOBJ.cam_move_hori(150)
+                case 1073741915:    # numpad 3
+                    if (STAGEOBJ.floor_index+1 < 3):
+                        STAGEOBJ.display_floorgrid(STAGEOBJ.floor_index+1)
+                        STAGEOBJ.floor_index += 1
+                case 1073741914:    # numpad 2
+                    STAGEOBJ.cam_move_vert(-150)
+                case 1073741913:    # numpad 1
+                    if (STAGEOBJ.floor_index-1 >= 0):
+                        STAGEOBJ.display_floorgrid(STAGEOBJ.floor_index-1)
+                        STAGEOBJ.floor_index -= 1
 
 
 def on_key_up(key, mod):
@@ -171,9 +179,10 @@ def update(time_elapsed):
     # On program start: set GAME_STAGE to 1 (MainMenu)
     # Also check if this is first time opening and create everything important
     if GAME_STAGE == -1:
-        GAME_STAGE = 1
-        if (not os.path.exists('src/db/char.db')):
-            db = DBManager("src/db/char.db")
+        GAME_STAGE = 2
+        # TODO change this back to 1
+        if (not os.path.exists(DBURL)):
+            db = DBManager(DBURL)
             db.create_all_db()
             db.close()
             db = None
@@ -222,7 +231,9 @@ def draw():
                 # pylint: disable-next=C0200
                 for x in range(len(STAGEOBJ.grid)):
                     for y in range(len(STAGEOBJ.grid[x])):
-                        if STAGEOBJ.grid[x][y].highlight_flag != 1:
+                        if STAGEOBJ.grid[x][y].actor is not None:
+                            STAGEOBJ.grid[x][y].actor.draw()
+                        elif STAGEOBJ.grid[x][y].highlight_flag != 1:
                             screen.draw.rect(
                                 STAGEOBJ.grid[x][y].rect, (255, 0, 0))
                         else:
