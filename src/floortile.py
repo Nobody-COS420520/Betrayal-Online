@@ -142,7 +142,8 @@ class FloorTileLeaf(FloorTileComponent):
     # 3 - down
     img = ""                        # String containing URL to room image
     neighbors = None                # Reference to a NeighborsComposite instance
-    gridspace = None
+    gridspace = None                # Reference to the relevant GridSpace object
+    inhabitants = None              # List of all Character objects located on the FloorTIleLeaf
 
     def __init__(self, p_room_logic=-1, p_db_tuple=-1):
         """ FloorTileLeaf Constructor """
@@ -157,5 +158,45 @@ class FloorTileLeaf(FloorTileComponent):
             self.doors = json.loads(p_db_tuple[3])
             self.img = p_db_tuple[4]
         self.gridspace = None
+        self.inhabitants = []
 
     # FloorTileLeaf.room_logic set in constructor ^
+
+    def update_enclosed_actors(self):
+        """ Displays enclosed actors in responsive manner (place in center / left half - right half, etc) """
+        if len(self.inhabitants) == 0:
+            return
+        
+        start_x = self.gridspace.get_x()
+        start_y = self.gridspace.get_y()
+        width = self.gridspace.actor.width
+
+        # split floortile space into ceil(sqrt(n)) columns (num_hori)
+        # and ceil(n/ceil(sqrt(n))) rows (num_vert)
+        n = len(self.inhabitants) # for readability
+        num_hori = math.ceil(n**(0.5))
+        num_vert = math.ceil(n/num_hori)
+        l_width = self.gridspace.actor.width//num_hori
+        # Might not need l_height due to squares but is here in case things change at some weird point
+        l_height = self.gridspace.actor.height//num_vert
+        
+        h_count = 0
+        v_count = 0
+        for x in self.inhabitants:
+            # Setup hori position
+            working_x = self.gridspace.actor.x + h_count*l_width
+            h_count+=1
+            if h_count >= num_hori:
+                h_count = 0
+            
+            
+            # Setup vert position
+            working_y = self.gridspace.actor.y + v_count*l_height
+            v_count+=1
+            if v_count >= num_vert:
+                v_count = 0
+            
+            x.establish_actor((working_x,working_y), l_width)
+
+        # Also zoom the logo if needed
+

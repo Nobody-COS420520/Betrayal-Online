@@ -22,15 +22,31 @@ def on_mouse_move(pos, rel, buttons):
                 if prev is not None:
                     prev.on_offhover(prev)
         case 2:     # Midgame stage
-            prev = STAGEOBJ.get_grid_loc((pos[0]-rel[0], pos[1]-rel[1]))
-            current = STAGEOBJ.get_grid_loc(pos)
+            prev_isgrid = False
+            current_isgrid = False
+            # If mouse on/off of MenuObject
+            # Then set current/prev to MneuObject
+            # Else check if mouse on/off GridSpace
+            prev = Menu_Tree.get_menu_object(
+                STAGEOBJ, (pos[0]-rel[0], pos[1]-rel[1]))
+            if prev is not None:
+                prev.on_offhover(prev)
+            else:
+                prev = STAGEOBJ.get_grid_loc((pos[0]-rel[0], pos[1]-rel[1]))
+                prev_isgrid = True
+            current = Menu_Tree.get_menu_object(STAGEOBJ, pos)
+            if current is not None:
+                current.on_hover(current)
+            else:
+                current = STAGEOBJ.get_grid_loc(pos)
+                current_isgrid = True
             if current != prev:
                 #   validity check if current is in the range of possible Midgame.grid squares
-                if current[0] < len(STAGEOBJ.grid) and current[1] < len(STAGEOBJ.grid[0]):
+                if current_isgrid and current[0] < len(STAGEOBJ.grid) and current[1] < len(STAGEOBJ.grid[0]):
                     # Midgame.grid[current[0]][current[1]].on_hover(current[0], current[1])
                     STAGEOBJ.grid[current[0]][current[1]].on_hover()
                 #   this validity check is necessary if mouse is reentering grid from outside
-                if prev[0] < len(STAGEOBJ.grid) and prev[1] < len(STAGEOBJ.grid[0]):
+                if prev_isgrid and prev[0] < len(STAGEOBJ.grid) and prev[1] < len(STAGEOBJ.grid[0]):
                     STAGEOBJ.grid[prev[0]][prev[1]].on_offhover()
 
 
@@ -71,11 +87,19 @@ def on_mouse_up(pos, button):
                     current.on_mouseup(current)
             pass
         case 2:  # Midgame Stage
-            current = STAGEOBJ.get_grid_loc(pos)
-            #   validity check if left mousebutton and current is in the range of possible GRID squares
-            if button == 1 and current[0] < len(STAGEOBJ.grid) and current[1] < len(STAGEOBJ.grid[0]):
-                STAGEOBJ.grid[current[0]][current[1]].on_mouseup(
-                    current[0], current[1])
+            if button == 1:
+                # If user clicks on a menu object
+                # Then do only menu_object.on_mouseup()
+                # Else, do GridSpace.on_mouseup()
+                current = Menu_Tree.get_menu_object(STAGEOBJ, pos)
+                if current is not None:
+                    current.on_mouseup(current)
+                else:
+                    current = STAGEOBJ.get_grid_loc(pos)
+                    #   validity check if left mousebutton and current is in the range of possible GRID squares
+                    if current[0] < len(STAGEOBJ.grid) and current[1] < len(STAGEOBJ.grid[0]):
+                        STAGEOBJ.grid[current[0]][current[1]].on_mouseup(
+                            current[0], current[1])
 
 
 def on_key_down(key, mod, unicode):
@@ -239,6 +263,11 @@ def draw():
                         else:
                             screen.draw.rect(
                                 STAGEOBJ.grid[x][y].rect, STAGEOBJ.grid[x][y].highlight_color)
+            for x in STAGEOBJ.turn_q:
+                x.actor.draw()
+            STAGEOBJ.option_tree.draw()
+            for x in STAGEOBJ.foreground_ui:
+                STAGEOBJ.foreground_ui[x].draw()
 
 
 pgzrun.go()

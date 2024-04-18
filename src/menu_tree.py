@@ -10,7 +10,6 @@ class Menu_Tree():
     def __init__(self):
         """ Menu_Tree Constructor """
         self.contents = []
-        pass
 
     def add(self, text, rect=Rect((25, 25), (100, 100))):
         """ Appends a new Menu_Object into the Menu_Tree """

@@ -1,3 +1,4 @@
+# pylint: disable=C0301, E0602, W0603
 """  The first file concatted into the final .py that gets run  """
 #    pygame zero only works with one module so all .py in /src are
 #    concatenated into one single .py module upon docker run/start.

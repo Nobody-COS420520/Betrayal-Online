@@ -38,14 +38,14 @@ class DBManager():
                   '[-1,2,3,3,4,5,6,6,7]', 4,
                   '[-1,3,3,3,4,5,6,7,8]', 4,
                   '[-1,1,3,3,5,5,6,6,7]', 3,
-                  'images/players/icons/BJ2.png','images/players/player_cards/BJ.png'),
+                  'players/icons/bj2.png','players/player_cards/bj.png'),
             
                   (1, 'Darrin \"Flash\" Williams', 'Red', 
                   '[-1,4,4,4,5,6,7,7,8]', 5,
                   '[-1,2,3,3,4,5,6,6,7]', 3,
                   '[-1,1,2,3,4,5,5,5,7]', 3,
                   '[-1,2,3,3,4,5,5,5,7]', 3,
-                  'images/players/icons/DFW2.png','images/players/player_cards/DFW.png')
+                  'players/icons/dfw2.png','players/player_cards/dfw.png')
                   """)
 
         self.conn.commit()

@@ -1,7 +1,6 @@
 """ Holds functions related to drawing grid squares """
 # pylint: disable=C0301, E0602, W0603
 
-
 class Midgame():
     """ Singleton class holding properties of the midgame Game Stage (stage number 2) """
 
@@ -20,15 +19,54 @@ class Midgame():
     # 0 = Basement
     # 1 = Ground
     # 2 = Upper
+    turn_q = None           # Holds Collections.deque instance with Character objs and the turn order 
+    turn = []               # Holds list of GameTurn objs that have occured
+    foreground_ui = None    # Holds dict of UI elements' Actors to draw above of the Grid
+    option_tree = None      # Holds MenuTree obj for foreground elements
 
     midgame_bg = Actor("bo_specific/dark_wood_texture_1920x1080.jpg")
 
-    def __init__(self):
-        """ Midgame class Constructor """
+
+    def __init__(self, turn_queue = -1):
+        """ Midgame class Constructor, turn_queue gets created during CharacterSelect phase """
         self.initialize_grid(WIDTH, HEIGHT)
         self.establish_grid_neighbors(WIDTH, HEIGHT)
         self.setup_floorgrid()
         self.assign_floorgrid_to_grid(self.floorgrids[self.floor_index])
+        if(turn_queue == -1):
+            self.turn_q = collections.deque()
+            db = DBManager(DBURL)
+            data = db.retrieve_character_data()
+            db.close()
+            for x in data:
+                self.turn_q.append(Character(x))
+            print("In Midgame Init:  " + str(self.turn_q))
+        # Creation of midgame MenuTree
+        self.option_tree = Menu_Tree()
+        self.option_tree.add("Menu", Rect((WIDTH//71.1, HEIGHT//37.24), (WIDTH//13.24, HEIGHT//16.6)))
+        self.option_tree.add("Next", Rect((WIDTH//1.16, 0), (WIDTH//7.11, HEIGHT//7.4)))
+        self.option_tree.add("moves remaining", Rect((WIDTH-(WIDTH//4.9),HEIGHT//10), (WIDTH//4.9, HEIGHT//6.3)))       
+        self.option_tree.contents[0].adjacencies[1] = self.option_tree.contents[1]
+        self.option_tree.contents[0].adjacencies[2] = self.option_tree.contents[1]
+        self.option_tree.contents[1].adjacencies[1] = self.option_tree.contents[0]
+        self.option_tree.contents[1].adjacencies[2] = self.option_tree.contents[0]
+        for x in self.option_tree.contents:
+            x.text.midgame_default(x)
+            x.text.top = self.option_tree.contents[0].rect.top
+        self.option_tree.contents[0].text.centerx = self.option_tree.contents[0].rect.centerx
+        self.option_tree.contents[1].text.right = WIDTH-(WIDTH//14.77)
+        self.option_tree.contents[2].on_hover = lambda x: 1
+        self.option_tree.contents[2].text.midright = self.option_tree.contents[2].rect.midright
+
+        # Creation of Characters
+        self.initial_character_placement()
+        self.foreground_ui = dict()
+
+        # Beginning of first turn
+        self.turn = [GameTurn(self.turn_q[0], self)]
+        
+        
+
 
     class GridSquare():
         """ Holds functions for a Grid Square's events and references to neighbor Grid Squares"""
@@ -60,12 +98,14 @@ class Midgame():
                 self.on_offhover = self.unhighlight
             if p_on_mousedown is None:
                 self.on_mousedown = lambda p_x, p_y: print(
-                    "Mousedown on square " + str(p_x) + ", " + str(p_y) + ", " + self.floortile.name)
+                    "Mousedown on square " + str(p_x) + ", " + str(p_y) + ", " +\
+                        self.floortile.name if self.floortile is not None else "None")
             else:
                 self.on_mousedown = p_on_mousedown
             if p_on_mouseup is None:
                 self.on_mouseup = lambda p_x, p_y: print(
-                    "Mouseup on square " + str(p_x) + ", " + str(p_y) + ", " + self.floortile.name)
+                    "Mouseup on square " + str(p_x) + ", " + str(p_y) + ", " + \
+                        self.floortile.name if self.floortile is not None else "None")
             else:
                 self.on_mouseup = p_on_mouseup
             self.neighbors = p_neighbors
@@ -125,6 +165,28 @@ class Midgame():
 
         def __eq__(self, other):
             return self.hori == other.hori and self.vert == other.vert
+    ##############################################################################
+
+    @staticmethod
+    def on_hover(p_menu_object):
+        """ Executes on hover over MidGame menu object """
+        p_menu_object.text.fontsize = 64
+
+    @staticmethod
+    def on_offhover(p_menu_object):
+        """ Executes on offhover over MidGame menu object """
+        p_menu_object.text.fontsize = 52
+        p_menu_object.highlight_flag = 0
+
+    @staticmethod
+    def on_mouseup(p_menu_object):
+        """ Executes on hover over MidGame menu object """
+        p_menu_object.highlight_flag = 1
+
+    @staticmethod
+    def next_mouseup(p_menu_object):
+        """ Triggers end of turn logic """
+        
 
     def initialize_grid(self, p_width, p_height):
         """ Initializes and fills the global GRID 2d array with GridSquare objects """
@@ -213,6 +275,7 @@ class Midgame():
                     x_pos, y_pos, self.grid_size, self.grid_size)
                 if (self.grid[x][y].actor is not None):
                     self.establish_actor(self.grid[x][y])
+                    self.grid[x][y].floortile.update_enclosed_actors()
 
         return self.grid_scale
 
@@ -229,6 +292,7 @@ class Midgame():
                 self.grid[x][y].rect.move_ip(p_delta_px, 0)
                 if (self.grid[x][y].actor is not None):
                     self.establish_actor(self.grid[x][y])
+                    self.grid[x][y].floortile.update_enclosed_actors()
 
         return p_delta_px
 
@@ -245,6 +309,7 @@ class Midgame():
                 self.grid[x][y].rect.move_ip(0, p_delta_px)
                 if (self.grid[x][y].actor is not None):
                     self.establish_actor(self.grid[x][y])
+                    self.grid[x][y].floortile.update_enclosed_actors()
 
         return p_delta_px
 
@@ -330,6 +395,9 @@ class Midgame():
         p_gridspace.actor.x = p_gridspace.get_x()
         p_gridspace.actor.y = p_gridspace.get_y()
 
+        #for x in p_floortile.inhabitants:
+
+
     def draw_floortile(self, p_gridspace):
         """ Draws a random FloorTile id and creates a FloorTIle obj from data from DB """
 
@@ -369,5 +437,29 @@ class Midgame():
 
     def display_floorgrid(self, p_grid_index, p_focus=None):
         """ Switches the displayed floorgrid, switching all floortiles displayed """
-
         self.assign_floorgrid_to_grid(self.floorgrids[p_grid_index], p_focus)
+
+    def initial_character_placement(self):
+        """ At the start of MidGame phase, place all characters inside turn_q in the Entrance Hall """
+        # Sets all character's current_loc to the Entrance Hall
+        for x in self.turn_q:
+            self.place_character(x, self.floorgrids[1].contents[1])
+
+    def place_character(self, p_character, p_floortile):
+        """ Places p_character in p_floortile, updating both new and previous FloorTile """
+        # Remove p_character from their current FloorTile
+        prev_floortile = p_character.current_loc
+        if prev_floortile is not None:
+            prev_floortile.inhabitants.remove(p_character)
+            prev_floortile.update_enclosed_actors()
+
+        # Place p_character into p_floortile
+        p_character.current_loc = p_floortile
+        p_floortile.inhabitants.append(p_character)
+        p_floortile.update_enclosed_actors()
+
+    
+
+
+
+        

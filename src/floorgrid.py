@@ -88,3 +88,4 @@ class FloorGrid():
         for x in self.neighbors:
             if x is not None and p_id in x.neighbors:
                 x.neighbors.remove(p_id)
+
