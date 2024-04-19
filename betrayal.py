@@ -266,6 +266,11 @@ def draw():
             for x in STAGEOBJ.turn_q:
                 x.actor.draw()
             STAGEOBJ.option_tree.draw()
+            """for x in STAGEOBJ.option_tree.contents:
+                if x.highlight_flag != 1:
+                    screen.draw.rect(x.rect, (255, 0, 0))
+                else:
+                    screen.draw.rect(x.rect, x.text.highlight_color)"""
             for x in STAGEOBJ.foreground_ui:
                 STAGEOBJ.foreground_ui[x].draw()
 

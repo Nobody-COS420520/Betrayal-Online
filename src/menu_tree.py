@@ -14,10 +14,45 @@ class Menu_Tree():
     def add(self, text, rect=Rect((25, 25), (100, 100))):
         """ Appends a new Menu_Object into the Menu_Tree """
         self.contents.append(self.Menu_Object(text, rect))
+        return self.contents[len(self.contents)-1]
+
+    def delete(self, text=None, coords=None, menu_object=None):
+        """ Searches and deletes Menu_Object from Menu_Tree instance """
+        if text is None and coords is None and menu_object is None:
+            print(
+                "ERROR in Menu_Tree.delete():  No text, coords or menu_object specified")
+            return
+
+        working_obj_list = []
+
+        # If specified
+        # Then add menu_object to delete list
+        if menu_object is not None:
+            working_obj_list.append(menu_object)
+
+        # Else if text is specified
+        # Then add all menu_objects with matching text to delete list
+        elif text is not None:
+            for x in self.contents:
+                if x.text.text == text:
+                    working_obj_list.append(x)
+
+        # Else if coords are specified
+        # Then all menu_obj with rects at the passed tuple (x,y) added to delete list
+        elif coords is not None:
+            for x in self.contents:
+                if x.rect.x <= coords[0] and x.rect.x + x.rect.width > coords[0] \
+                        and x.rect.y <= coords[1] and x.rect.y + x.rect.height > coords[1]:
+                    working_obj_list.append(x)
+
+        # Go through working_obj_list and delete each one from self.contents
+        for x in working_obj_list:
+            self.contents.remove(x)
 
     def draw(self):
         """ Draws all Menu Objects in Menu_Tree. Used in main draw() function """
         for x in self.contents:
+            # print("In menu_Tree.draw():  " + str(x.text.text) + ", " + str(x.text.bottomright))
             x.draw()
 
     @staticmethod
