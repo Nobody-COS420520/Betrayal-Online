@@ -163,6 +163,12 @@ def on_key_up(key, mod):
                             GAME_STAGE = 0
         case 2:                     # Midgame Stage
             match(key):
+                case 13:            # Enter key
+                    match(mod):
+                        case default:
+                            turn = STAGEOBJ.turn[len(STAGEOBJ.turn)-1]
+                            if turn.turn_phase == 1:
+                                STAGEOBJ.end_turn()
                 case 113:           # Q
                     match(mod):
                         case 4097:  # left shift
@@ -176,6 +182,42 @@ def on_key_up(key, mod):
                     match(mod):
                         case 4097:  # left shift
                             GAME_STAGE = 0
+                case 1073741906:    # Up Arrow
+                    match(mod):
+                        case 4097:  # left shift
+                            turn = STAGEOBJ.turn[len(STAGEOBJ.turn)-1]
+                            if turn.turn_phase == 0:    # Movement Phase
+                                turn.move("Special", 5)
+                        case default:
+                            turn = STAGEOBJ.turn[len(STAGEOBJ.turn)-1]
+                            if turn.turn_phase == 0:    # Movement Phase
+                                turn.move("Up")
+                case 1073741904:    # Left Arrow
+                    match(mod):
+                        case default:
+                            turn = STAGEOBJ.turn[len(STAGEOBJ.turn)-1]
+                            if turn.turn_phase == 0:    # Movement Phase
+                                turn.move("Left")
+                            elif turn.turn_phase == 1:
+                                turn.rotate_focus_by_doors("Left")
+                case 1073741903:    # RIGHT Arrow
+                    match(mod):
+                        case default:
+                            turn = STAGEOBJ.turn[len(STAGEOBJ.turn)-1]
+                            if turn.turn_phase == 0:    # Movement Phase
+                                turn.move("Right")
+                            elif turn.turn_phase == 1:
+                                turn.rotate_focus_by_doors("Right")
+                case 1073741905:    # Down Arrow
+                    match(mod):
+                        case 4097:  # left shift
+                            turn = STAGEOBJ.turn[len(STAGEOBJ.turn)-1]
+                            if turn.turn_phase == 0:    # Movement Phase
+                                turn.move("Special", 4)
+                        case default:
+                            turn = STAGEOBJ.turn[len(STAGEOBJ.turn)-1]
+                            if turn.turn_phase == 0:    # Movement Phase
+                                turn.move("Down")
 
         case default:               # no game stage
             match(key):
@@ -203,8 +245,7 @@ def update(time_elapsed):
     # On program start: set GAME_STAGE to 1 (MainMenu)
     # Also check if this is first time opening and create everything important
     if GAME_STAGE == -1:
-        GAME_STAGE = 2
-        # TODO change this back to 1
+        GAME_STAGE = 1
         if (not os.path.exists(DBURL)):
             db = DBManager(DBURL)
             db.create_all_db()
@@ -264,7 +305,8 @@ def draw():
                             screen.draw.rect(
                                 STAGEOBJ.grid[x][y].rect, STAGEOBJ.grid[x][y].highlight_color)
             for x in STAGEOBJ.turn_q:
-                x.actor.draw()
+                if x.current_floor == STAGEOBJ.floor_index:
+                    x.actor.draw()
             STAGEOBJ.option_tree.draw()
             """for x in STAGEOBJ.option_tree.contents:
                 if x.highlight_flag != 1:

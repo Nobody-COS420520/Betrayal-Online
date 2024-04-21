@@ -6,13 +6,15 @@ class FloorGrid():
 
     # Holds String identifier for the floor ("Basement" | "Ground" | "Upper")
     floorid = ""
+    index = 0               # Holds index of current floor in the MidGame obj
     neighbors = []          # Holds list of neighbor FloorGrid objs,
     # Index Format: 0 = lower neighbor, 1 = higher neighbor
     contents = []           # Contains FloorTiles inside FloorGrid
     possible = []           # Contains valid FloorTile ids remaining to be placed
 
-    def __init__(self, p_floor):
+    def __init__(self, p_floor, p_index):
         """ Constructor for FloorGrid """
+        self.index = p_index
         self.contents = []
         data_tuple = []
         db = DBManager(DBURL)
@@ -52,8 +54,9 @@ class FloorGrid():
 
         # Setup self.possible with the id nums retrieved and stored in ids
         self.possible = []
-        for x in ids:
-            self.possible.append(x[0])
+        for x in ids[1:]:
+            if self.floorid != "Ground" or x[0] > 4:
+                self.possible.append(x[0])
 
         # Still requires setup_floor_neighbors(p_floorgridlist) to be
         # called to setup self.neighbors before FloorGrid can be used
@@ -68,7 +71,9 @@ class FloorGrid():
         if (self.floorid == "Basement"):
             self.neighbors[1] = p_floorgridlist[1]
             self.contents[0].neighbors.add(
-                p_floorgridlist[1].contents[3], "Special")
+                p_floorgridlist[1].contents[3], "Special", 5)
+            self.contents[0].doors.append(False)
+            self.contents[0].doors.append(True)
         elif (self.floorid == "Ground"):
             self.neighbors[0] = p_floorgridlist[0]
             self.neighbors[1] = p_floorgridlist[2]
@@ -77,10 +82,18 @@ class FloorGrid():
                     self.contents[x].neighbors.add(self.contents[x-1], "Right")
                 if x+1 < 4:
                     self.contents[x].neighbors.add(self.contents[x+1], "Left")
+                if x == 3:
+                    self.contents[x].neighbors.add(
+                        p_floorgridlist[0].contents[0], "Special", 4)
+                    self.contents[x].neighbors.add(
+                        p_floorgridlist[2].contents[0], "Special", 5)
+                    self.contents[x].doors.append(True)
+                    self.contents[x].doors.append(True)
         elif (self.floorid == "Upper"):
             self.neighbors[0] = p_floorgridlist[1]
             self.contents[0].neighbors.add(
-                p_floorgridlist[1].contents[3], "Special")
+                p_floorgridlist[1].contents[3], "Special", 4)
+            self.contents[0].doors.append(True)
 
     def remove_poss_floortile(self, p_id):
         """ Removes p_id from current FloorGrid object and all of it's applicable neighbors """
@@ -88,4 +101,3 @@ class FloorGrid():
         for x in self.neighbors:
             if x is not None and p_id in x.neighbors:
                 x.neighbors.remove(p_id)
-

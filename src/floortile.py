@@ -32,11 +32,10 @@ class NeighborsComposite(FloorTileComponent):
         else:
             self.neighbors = p_neighbors
 
-    def add(self, a, dir_relation="up"):
+    def add(self, a, dir_relation="up", p_special_num=None):
         """ Adds parameter a into neighbors list """
         if a is None:
             return
-        # print("In NeighborsComposite.add:  " + a.name + " " + dir_relation)
         if (isinstance(a, FloorTileComponent)):
             if (dir_relation == "Up" or dir_relation == "up"):
                 self.neighbors[0] = a
@@ -47,8 +46,15 @@ class NeighborsComposite(FloorTileComponent):
             elif (dir_relation == "Down" or dir_relation == "down"):
                 self.neighbors[3] = a
             elif (dir_relation == "Special" or dir_relation == "special"):
+                if p_special_num is None:
+                    print(
+                        "ERROR in NeighborsComposite.add():  p_special_num required but not passed")
+                    return -1
                 # In case of floorchange or warp
+                for x in range(p_special_num-len(self.neighbors)):
+                    self.neighbors.append(None)
                 self.neighbors.append(a)
+                # print("In NeighborsComposite:  " + str(p_special_num) + ", " + str(self.neighbors))
             else:
                 print(
                     "Invalid dir_relation value (NeighborsComposite.add):  " + str(dir_relation))
@@ -133,7 +139,6 @@ class FloorTileLeaf(FloorTileComponent):
     #   4 - Upper Floor ONLY
     #   5 - Basement + Upper Floor
     #   6 - Basement + Ground + Upper
-    # TODO Might not need to store this in instance
     doors = []                      # List with bools representing edges with a doorways
     # DoorList index format:
     # 0 - up
@@ -143,7 +148,9 @@ class FloorTileLeaf(FloorTileComponent):
     img = ""                        # String containing URL to room image
     neighbors = None                # Reference to a NeighborsComposite instance
     gridspace = None                # Reference to the relevant GridSpace object
-    inhabitants = None              # List of all Character objects located on the FloorTIleLeaf
+    # List of all Character objects located on the FloorTIleLeaf
+    inhabitants = None
+    angle = 0                       # Angle of rotation of
 
     def __init__(self, p_room_logic=-1, p_db_tuple=-1):
         """ FloorTileLeaf Constructor """
@@ -159,6 +166,7 @@ class FloorTileLeaf(FloorTileComponent):
             self.img = p_db_tuple[4]
         self.gridspace = None
         self.inhabitants = []
+        self.angle = 0
 
     # FloorTileLeaf.room_logic set in constructor ^
 
@@ -166,37 +174,53 @@ class FloorTileLeaf(FloorTileComponent):
         """ Displays enclosed actors in responsive manner (place in center / left half - right half, etc) """
         if len(self.inhabitants) == 0:
             return
-        
+
         start_x = self.gridspace.get_x()
         start_y = self.gridspace.get_y()
         width = self.gridspace.actor.width
 
         # split floortile space into ceil(sqrt(n)) columns (num_hori)
         # and ceil(n/ceil(sqrt(n))) rows (num_vert)
-        n = len(self.inhabitants) # for readability
+        n = len(self.inhabitants)  # for readability
         num_hori = math.ceil(n**(0.5))
         num_vert = math.ceil(n/num_hori)
         l_width = self.gridspace.actor.width//num_hori
         # Might not need l_height due to squares but is here in case things change at some weird point
         l_height = self.gridspace.actor.height//num_vert
-        
+
         h_count = 0
         v_count = 0
         for x in self.inhabitants:
             # Setup hori position
             working_x = self.gridspace.actor.x + h_count*l_width
-            h_count+=1
+            h_count += 1
             if h_count >= num_hori:
                 h_count = 0
-            
-            
+
             # Setup vert position
             working_y = self.gridspace.actor.y + v_count*l_height
-            v_count+=1
+            v_count += 1
             if v_count >= num_vert:
                 v_count = 0
-            
-            x.establish_actor((working_x,working_y), l_width)
+
+            x.establish_actor((working_x, working_y), l_width)
 
         # Also zoom the logo if needed
 
+    def rotate_doors(self, direction=None):
+        """ Rotates a FloorTileLeaf instance either direction='Left' or direction='Right'"""
+
+        if direction == "Right" or direction == "right":
+            temp = self.doors[0]+0
+            self.doors[0] = self.doors[2]
+            self.doors[2] = self.doors[3]
+            self.doors[3] = self.doors[1]
+            self.doors[1] = temp
+
+        elif direction == "Left" or direction == "left":
+
+            temp = self.doors[3]+0
+            self.doors[3] = self.doors[2]
+            self.doors[2] = self.doors[0]
+            self.doors[0] = self.doors[1]
+            self.doors[1] = temp

@@ -14,28 +14,36 @@ class GameTurn():
     # 0 = exploration phase
     # 1 = pre-haunt phase
     # 2 = haunt phase
-    turn_stage = 0              # Integer flag for stage of current turn
-    # turn_stage Format:
+    turn_phase = 0              # Integer flag for stage of current turn
+    # turn_phase Format:
     # 0 - movement preview
     # 1 - rotation preview
+    rotate_focus = None         # Holds ref to any placed tile that is being rotated
+    move_dir = None             # Holds direction of movement, used in rotating new tiles
 
     def __init__(self, p_character, game_stage, p_midgame_instance=None):
         """ Constructor for GameTurn class """
         self.character = p_character
         self.events = []
         self.remaining_moves = p_character.statValues[0][p_character.statIndex[0]]
-        print("In GameTurn init:  " + str(self.remaining_moves))
         self.game_stage = game_stage
-        self.turn_stage = 0
-        self.new_action("Start Turn", turn_stage=self.turn_stage,
-                        starting_tile=p_character.current_loc)
+        self.turn_phase = 0
+        self.rotate_focus = None
 
-        # p_foreground_ui is only ment to be passed during constructor of MidGameStage,
-        # when STAGEOBJ is still being assigned
+        self.new_action("Start Turn", turn_phase=self.turn_phase,
+                        destination_tile=p_character.current_loc.name, remaining_moves=self.remaining_moves)
+
         if p_midgame_instance is None:
             stage_instance = STAGEOBJ
         else:
             stage_instance = p_midgame_instance
+        stage_instance.display_floorgrid(
+            p_character.current_floor, p_character.current_loc)
+        stage_instance.floor_index = p_character.current_floor
+
+        # p_foreground_ui is only ment to be passed during constructor of MidGameStage,
+        # when STAGEOBJ is still being assigned
+
         stage_instance.foreground_ui["card"] = Actor(p_character.card, bottomright=(
             WIDTH-(WIDTH//120), HEIGHT-(HEIGHT//90)), anchor=("right", "bottom"))
         stage_instance.foreground_ui["card"]._surf = pygame.transform.scale(
@@ -61,11 +69,135 @@ class GameTurn():
     def turn_start(self, p_func_list):
         """ Executes list of functions holding logic to be executed first in turn """
 
-    def turn_end(self, p_func_list):
-        """ Executes list of functions holding logic to be executed first in turn """
+    # def turn_end(self, p_func_list):
+    #    """ Executes list of functions holding logic to be executed first in turn """
 
-    def move(self, p_floortile):
+    def move(self, p_direction, p_special=None):
         """ Adds move preview event to the event list """
+
+        # If turn_phase is not in movement stage
+        # Then return without doing anything
+        if self.turn_phase != 0:
+            return
+
+        # Switch p_direction from String to index to be used with adjacency arrays
+        if p_direction == "Up" or p_direction == "up":
+            p_direction = 0
+        elif p_direction == "Left" or p_direction == "left":
+            p_direction = 1
+        elif p_direction == "Right" or p_direction == "right":
+            p_direction = 2
+        elif p_direction == "Down" or p_direction == "down":
+            p_direction = 3
+        elif (p_direction == "Special" or p_direction == "special") and p_special is not None:
+            p_direction = p_special
+            if p_special >= len(self.character.current_loc.neighbors.neighbors):
+                print("ERROR in GameTurn.move():  p_special out of bounds for current FloorTile:  " +
+                      str(self.character.current_loc.name) + ", " + str(p_direction))
+                return -1
+
+        v_start = self.character.current_loc
+
+        # If there is a doorway in the direction of move
+        # Then check if destination has a tile
+        # print("BEGINNING MOVE")
+
+        if v_start.doors[p_direction]:
+
+            v_dest = v_start.neighbors.neighbors[p_direction]
+
+            # If v_dest does not have a tile and there are still moves remaining
+            # Then draw a tile, create an event and begin rotation phase
+            if v_dest is None and self.remaining_moves > 0 and p_direction < 4:
+                # print("V_DEST IS UNDISCOVERED")
+                v_dest = STAGEOBJ.draw_floortile(
+                    v_start.gridspace.neighbors[p_direction])
+                v_start.neighbors.neighbors[p_direction] = v_dest
+                self.rotate_focus = v_dest
+                self.move_dir = p_direction
+                self.rotate_focus_by_doors(force_rotate=False)
+                self.new_action("Place New Tile", new_tile=v_dest.name)
+                self.turn_phase = 1     # Begin Rotation Phase
+                return self
+
+            # If tile in destination exists in the event list as a preview before any rollback_stops,
+            # Then delete all non-stop events that occured after the movement preview
+            rollback_stops = []  # will contain strings of action_descriptions
+            for x in range(len(self.events)-1, -1, -1):
+                if self.events[x].action_description in rollback_stops:
+                    break
+                if self.events[x].data_dict["destination_tile"] is not None and \
+                        v_dest is not None and self.events[x].data_dict["destination_tile"] == v_dest.name:
+
+                    if p_direction == 4:
+                        # print("DOWN FLOOR")
+                        STAGEOBJ.floor_index -= 1
+                    if p_direction == 5:
+                        # print("UP FLOOR")
+                        STAGEOBJ.floor_index += 1
+                    STAGEOBJ.display_floorgrid(STAGEOBJ.floor_index, v_dest)
+                    self.character.current_floor = STAGEOBJ.floor_index
+                    self.update_remaining_moves(
+                        self.events[x].data_dict["remaining_moves"])
+                    STAGEOBJ.place_character(self.character, v_dest)
+                    self.events = self.events[:x+1]
+                    return self
+
+            # If destination has a tile and there are still moves remaining
+            # Then wrap up successful move and create event
+            # else draw, move and begin rotation phase
+            if v_dest and self.remaining_moves > 0:
+                # print("NEW TILE")
+                if p_direction == 4:
+                    # print("DOWN FLOOR")
+                    STAGEOBJ.floor_index -= 1
+                if p_direction == 5:
+                    # print("UP FLOOR")
+                    STAGEOBJ.floor_index += 1
+                STAGEOBJ.display_floorgrid(STAGEOBJ.floor_index, v_dest)
+                self.character.current_floor = STAGEOBJ.floor_index
+
+                self.update_remaining_moves(self.remaining_moves-1)
+                STAGEOBJ.place_character(self.character, v_dest)
+                self.new_action("Movement Preview", destination_tile=v_dest.name,
+                                remaining_moves=self.remaining_moves)
+                return self
+
+    def rotate_focus_by_doors(self, p_rotate_dir="Left", force_rotate=True):
+        """ Rotates p_dest_tile so its doors are aligned with p_start_tile's doors. """
+
+        match(self.move_dir):
+            case 0:
+                opp_direction = 3
+            case 1:
+                opp_direction = 2
+            case 2:
+                opp_direction = 1
+            case 3:
+                opp_direction = 0
+
+        num_rotates = 0
+        # pylint: disable-next=C0121
+        while self.rotate_focus.doors[opp_direction] != 1 or force_rotate == True:
+            num_rotates += 1
+            self.rotate_focus.rotate_doors(p_rotate_dir)
+            force_rotate = False
+        STAGEOBJ.rotate(p_rotate_dir, self.rotate_focus.gridspace,
+                        num_rotates=num_rotates)
+
+    def finalize(self):
+        """ Executes logic to end a turn """
+        if self.rotate_focus:
+            self.new_action("Finalize Rotation", angle=self.rotate_focus.angle)
+        STAGEOBJ.place_character(self.character, self.rotate_focus)
+        self.new_action("End Turn", final_tile=self.character.current_loc.name)
+
+    def update_remaining_moves(self, p_moves):
+        """ Updates everything that needs to be updated upon change of self.remaining_moves """
+        working_obj = Menu_Tree.get_menu_object(
+            STAGEOBJ, (WIDTH//1.27, HEIGHT//6.467))
+        working_obj.text.text = str(p_moves)
+        self.remaining_moves = p_moves
 
     def new_action(self, p_action_description, **kwargs):
         """ Creates new Action obj and appends into self.events """

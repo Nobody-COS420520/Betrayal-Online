@@ -17,6 +17,7 @@ class Character():
     card = ""                   # Holds URL to png of character's stat card
     inventory = None            # Holds instance's inventory object
     current_loc = None          # Holds ref to instance's current FloorTile on the game board
+    current_floor = None        # Holds ref to instance's current FloorGrid
     win_check = []              # Holds list of functions which return Bool, all need to be true for affiliation to win
                                 # if None instead of [], no checks exist yet and character cannot win
     actor = None                # Holds Actor for Character instance's logo
@@ -26,7 +27,8 @@ class Character():
         self.id = self.num_characters
         self.num_characters += 1
         self.inventory = self.Inventory()
-        self.current_loc = None  # FloorTile objects not implemented yet
+        self.current_loc = None
+        self.current_floor = None
         # call instance.assignCharacter(db_tuple) to assign values to the obj's important attributes
         # that's probably the more realistic implementation, this is good for testing
         if p_db_tuple is not None:
@@ -61,6 +63,8 @@ class Character():
         self.name = p_db_tuple[1]
         self.color = p_db_tuple[2]
         x = 3
+        self.statValues = []
+        self.statIndex = []
         while (x < 10):
             self.statValues.append(json.loads(p_db_tuple[x]))
             self.statIndex.append(p_db_tuple[x+1])

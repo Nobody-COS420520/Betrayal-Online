@@ -3,7 +3,7 @@
 
 
 class Midgame():
-    """ Singleton class holding properties of the midgame Game Stage (stage number 2) """
+    """ (not) Singleton class holding properties of the midgame Game Stage (stage number 2) """
 
     #   Grid attributes get officially assigned in setup_midame()
     #   these are default values
@@ -46,7 +46,6 @@ class Midgame():
             db.close()
             for x in data:
                 self.turn_q.append(Character(x))
-            print("In Midgame Init:  " + str(self.turn_q))
         # Creation of midgame MenuTree
         self.option_tree = Menu_Tree()
         self.option_tree.add("Menu", Rect(
@@ -212,12 +211,6 @@ class Midgame():
             for y in range(0, math.ceil(p_height/self.grid_size)):
                 self.grid[x].append(self.GridSquare(x, y, self))
 
-        # print("State of GRID after initialization:  ", end="")
-        # for x in range(0, math.ceil(p_width/self.grid_size)):
-        #    for y in range(0, math.ceil(p_height/self.grid_size)):
-        #        print(str(self.grid[x][y]) + ", ", end="")
-
-        # print()
         return self.grid
 
     def establish_grid_neighbors(self, p_width, p_height):
@@ -248,9 +241,9 @@ class Midgame():
     def setup_floorgrid(self):
         """ Sets up the 3 FloorGrid objects and self.floorgrids """
         self.floorgrids = []
-        self.floorgrids.append(FloorGrid("Basement"))
-        self.floorgrids.append(FloorGrid("Ground"))
-        self.floorgrids.append(FloorGrid("Upper"))
+        self.floorgrids.append(FloorGrid("Basement", 0))
+        self.floorgrids.append(FloorGrid("Ground", 1))
+        self.floorgrids.append(FloorGrid("Upper", 2))
         for x in self.floorgrids:
             x.setup_floor_neighbors(self.floorgrids)
         self.floor_index = 1
@@ -273,9 +266,6 @@ class Midgame():
         for x in range(len(self.grid)):
 
             for y in range(len(self.grid[x])):
-                #   uncomment these if it turns out outer scope functions don't use
-                #   up to date global vars (the changes here are small and make
-                #    little difference if it does or not)
                 # x_pos = GRID[x][y].hori*GRID_SIZE+GRID_OFFSET_X
                 # y_pos = GRID[x][y].vert*GRID_SIZE+GRID_OFFSET_Y
                 x_pos = self.grid[x][y].get_x()
@@ -351,7 +341,7 @@ class Midgame():
                 self.grid[x][y].floortile = None
                 self.grid[x][y].actor = None
 
-     #########################
+     # local helper function
         def recursive_traversal(p_floortile, p_gridspace):
 
             nonlocal visited_matrix
@@ -359,10 +349,10 @@ class Midgame():
             if (p_floortile is None or p_gridspace is None or visited_matrix[p_gridspace.hori][p_gridspace.vert] is True):
                 return
 
-            # print("Inside assign_floorgrid_to_grid:  " + p_floortile.name + "  " + str(p_gridspace.hori) + ", " + str(p_gridspace.vert))
             p_gridspace.floortile = p_floortile
             p_floortile.gridspace = p_gridspace
             self.establish_actor(p_gridspace, p_floortile)
+            p_floortile.update_enclosed_actors()
 
             visited_matrix[p_gridspace.hori][p_gridspace.vert] = True
 
@@ -379,7 +369,7 @@ class Midgame():
                 if (p_gridspace.vert+1 < len(self.grid[p_gridspace.hori])):
                     recursive_traversal(
                         p_floortile.neighbors.neighbors[3], p_gridspace.neighbors[3])
-         #####################
+         # local helper function
 
         # Assigns focus to default focus if a focus was not passed with call
         if focus is None:
@@ -388,7 +378,6 @@ class Midgame():
             else:
                 focus = p_floorgrid.contents[0]
 
-        # print("In Assign to Grid:  " + str(focus.name))
         grid_coords = self.get_grid_loc((WIDTH//2, HEIGHT//2))
         recursive_traversal(focus, self.grid[grid_coords[0]][grid_coords[1]])
 
@@ -396,24 +385,25 @@ class Midgame():
         """ Assigns FloorTile actor data to p_gridspace with correct position and scale """
         if (p_floortile is None):
             p_floortile = p_gridspace.floortile
+
         p_gridspace.actor = Actor(
             p_floortile.img, topleft=p_gridspace.rect.topleft, anchor=(0, 0))
+
         p_gridspace.actor._surf = pygame.transform.scale(
             p_gridspace.actor._surf, (self.grid_size, self.grid_size))
+        p_gridspace.actor._surf = pygame.transform.rotate(
+            p_gridspace.actor._surf, p_floortile.angle)
         p_gridspace.actor._update_pos()
         p_gridspace.actor.x = p_gridspace.get_x()
         p_gridspace.actor.y = p_gridspace.get_y()
 
-        # for x in p_floortile.inhabitants:
-
     def draw_floortile(self, p_gridspace):
-        """ Draws a random FloorTile id and creates a FloorTIle obj from data from DB """
+        """ Draws a random FloorTile id and creates a FloorTIle obj from data in DB """
 
         # Determine random possible FloorTile id
         current_floor = self.floorgrids[self.floor_index]
         random_id = current_floor.possible[random.randrange(
             len(current_floor.possible))]
-        # print("In draw_floortile():  " + str(random_id) + "  " + str(current_floor.possible))
 
         # Remove possible id from other FloorGrid's list of possible ids
         current_floor.remove_poss_floortile(random_id)
@@ -452,6 +442,7 @@ class Midgame():
         # Sets all character's current_loc to the Entrance Hall
         for x in self.turn_q:
             self.place_character(x, self.floorgrids[1].contents[1])
+            x.current_floor = 1
 
     def place_character(self, p_character, p_floortile):
         """ Places p_character in p_floortile, updating both new and previous FloorTile """
@@ -466,10 +457,34 @@ class Midgame():
         p_floortile.inhabitants.append(p_character)
         p_floortile.update_enclosed_actors()
 
+    def rotate(self, p_direction, p_gridspace=None, p_floortile=None, num_rotates=1):
+        """ Rotates floortile inside p_gridspace either p_direction='Left' or 'Right '"""
+
+        if p_gridspace and p_floortile is None:
+            p_floortile = p_gridspace.floortile
+        elif p_floortile and p_gridspace is None:
+            p_gridspace = p_floortile.gridspace
+
+        for x in range(num_rotates):
+            # rotating doors should be done beforehand/after to determine how many rotates
+            # uncommenting this will break rotating during GameTurn.move()
+            # p_floortile.rotate_doors(p_direction)
+
+            if p_direction == "Left" or p_direction == "left":
+                p_floortile.angle -= 90
+                if p_floortile.angle < 0:
+                    p_floortile.angle += 360
+
+            elif p_direction == "Right" or p_direction == "right":
+                p_floortile.angle += 90
+                if p_floortile.angle > 360:
+                    p_floortile.angle -= 360
+
+        STAGEOBJ.establish_actor(p_gridspace)
+
     def end_turn(self):
         """ Executes end of turn behavior and sets up a new turn """
-
-        # self.turn.turn_end()
-        self.turn[len(self.turn)-1].new_action("End Turn")
+        turn = self.turn[len(self.turn)-1]
+        turn.finalize()
         self.turn_q.rotate(-1)
         self.turn.append(GameTurn(self.turn_q[0], self))
