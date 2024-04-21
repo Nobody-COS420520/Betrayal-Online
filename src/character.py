@@ -33,7 +33,8 @@ class Character():
         # that's probably the more realistic implementation, this is good for testing
         if p_db_tuple is not None:
             self.assign_character(p_db_tuple)
-        self.win_check = None
+        self.affiliation = "Explorer"
+        self.win_check = []
         
 
     class Inventory():

@@ -18,6 +18,7 @@ class GameTurn():
     # turn_phase Format:
     # 0 - movement preview
     # 1 - rotation preview
+    # 2 - post rotation
     rotate_focus = None         # Holds ref to any placed tile that is being rotated
     move_dir = None             # Holds direction of movement, used in rotating new tiles
 
@@ -97,11 +98,13 @@ class GameTurn():
                 return -1
 
         v_start = self.character.current_loc
+        opp_direction = STAGEOBJ.opp_direction(p_direction)
 
         # If there is a doorway in the direction of move
         # Then check if destination has a tile
         # print("BEGINNING MOVE")
 
+        #if v_start.doors[p_direction] and v_start.neighbors.neighbors[p_direction] is not None:
         if v_start.doors[p_direction]:
 
             v_dest = v_start.neighbors.neighbors[p_direction]
@@ -122,12 +125,13 @@ class GameTurn():
 
             # If tile in destination exists in the event list as a preview before any rollback_stops,
             # Then delete all non-stop events that occured after the movement preview
-            rollback_stops = []  # will contain strings of action_descriptions
+            # will contain strings of action_descriptions
+            rollback_stops = ["Finalize Rotation"]
             for x in range(len(self.events)-1, -1, -1):
                 if self.events[x].action_description in rollback_stops:
                     break
                 if self.events[x].data_dict["destination_tile"] is not None and \
-                        v_dest is not None and self.events[x].data_dict["destination_tile"] == v_dest.name:
+                        v_dest is not None and v_dest.doors[opp_direction] == True and self.events[x].data_dict["destination_tile"] == v_dest.name:
 
                     if p_direction == 4:
                         # print("DOWN FLOOR")
@@ -146,7 +150,7 @@ class GameTurn():
             # If destination has a tile and there are still moves remaining
             # Then wrap up successful move and create event
             # else draw, move and begin rotation phase
-            if v_dest and self.remaining_moves > 0:
+            if v_dest and v_dest.doors[opp_direction] == True and self.remaining_moves > 0:
                 # print("NEW TILE")
                 if p_direction == 4:
                     # print("DOWN FLOOR")
@@ -166,31 +170,39 @@ class GameTurn():
     def rotate_focus_by_doors(self, p_rotate_dir="Left", force_rotate=True):
         """ Rotates p_dest_tile so its doors are aligned with p_start_tile's doors. """
 
-        match(self.move_dir):
-            case 0:
-                opp_direction = 3
-            case 1:
-                opp_direction = 2
-            case 2:
-                opp_direction = 1
-            case 3:
-                opp_direction = 0
-
         num_rotates = 0
         # pylint: disable-next=C0121
-        while self.rotate_focus.doors[opp_direction] != 1 or force_rotate == True:
+        while self.rotate_focus.doors[STAGEOBJ.opp_direction(self.move_dir)] != 1 or force_rotate == True:
             num_rotates += 1
             self.rotate_focus.rotate_doors(p_rotate_dir)
             force_rotate = False
         STAGEOBJ.rotate(p_rotate_dir, self.rotate_focus.gridspace,
                         num_rotates=num_rotates)
 
-    def finalize(self):
-        """ Executes logic to end a turn """
-        if self.rotate_focus:
-            self.new_action("Finalize Rotation", angle=self.rotate_focus.angle)
+    def finalize_rotation(self):
+        """ Executes logic to finalize the Rotation Phase (self.turn_phase == 1) """
+        self.new_action("Finalize Rotation", angle=self.rotate_focus.angle)
         STAGEOBJ.place_character(self.character, self.rotate_focus)
+        STAGEOBJ.display_floorgrid(STAGEOBJ.floor_index, self.rotate_focus)
+        self.update_remaining_moves(0)
+        self.turn_phase = 2  # Post Rotation Phase
+
+        # Setting up self.rotate_focus' neighbors and setting it as neighbor's neighbor
+        f = self.rotate_focus
+        for x in range(4):
+            f.neighbors.neighbors[x] = f.gridspace.neighbors[x].floortile
+            if f.gridspace.neighbors[x].floortile is not None:
+                f.neighbors.neighbors[x].neighbors.neighbors[STAGEOBJ.opp_direction(
+                    x)] = f
+
+    def wrap_up_turn(self):
+        """ Executes logic to end a turn """
+        if self.turn_phase == 1:
+            self.finalize_rotation()
         self.new_action("End Turn", final_tile=self.character.current_loc.name)
+        win = False
+        for x in self.character.win_check:
+            x()
 
     def update_remaining_moves(self, p_moves):
         """ Updates everything that needs to be updated upon change of self.remaining_moves """

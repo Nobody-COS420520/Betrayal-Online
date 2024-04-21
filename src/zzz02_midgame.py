@@ -77,6 +77,33 @@ class Midgame():
         # Beginning of first turn
         self.turn = [GameTurn(self.turn_q[0], self.game_stage, self)]
 
+        # Setup Demo
+        self.setup_demo()
+
+    ##### DEMO STUFF #####    
+    def setup_demo(self):
+        """ Demo stuff to be done in the MidGame initialization """
+        for x in self.turn_q:
+            x.win_check.append(lambda: exec("""
+def test():
+    for x in STAGEOBJ.turn_q:
+        if x.affiliation == 'Explorer' and x.current_loc.name != 'Doorway':
+            return False
+    return True
+
+if test() == True:                                          
+    STAGEOBJ.game_over('Explorer')                                        
+"""))
+
+    def game_over(self, winning_affiliation):
+        """ Code to execute on successful win check, when one affiliation wins """
+        global GAME_STAGE
+
+        print(str(winning_affiliation) + "s win")
+        GAME_STAGE = 1
+        tkinter.messagebox.showinfo("Game Finish", str(winning_affiliation) + "s Win!")
+    ##### DEMO STUFF #####
+
     class GridSquare():
         """ Holds functions for a Grid Square's events and references to neighbor Grid Squares"""
 
@@ -485,6 +512,22 @@ class Midgame():
     def end_turn(self):
         """ Executes end of turn behavior and sets up a new turn """
         turn = self.turn[len(self.turn)-1]
-        turn.finalize()
+        turn.wrap_up_turn()
         self.turn_q.rotate(-1)
         self.turn.append(GameTurn(self.turn_q[0], self))
+
+    def opp_direction(self, p_direction=0):
+        """ Returns the opposite direction value, used for going to a neighbor and back """
+        match(p_direction):
+            case 0:  # opp of up is down
+                return 3
+            case 1:  # opp of left is right
+                return 2
+            case 2:  # opp of right is left
+                return 1
+            case 3:  # opp of down is up
+                return 0
+            case 4:  # opp of down floor is up floor
+                return 5
+            case 5:  # opp of up floor is down floor
+                return 4

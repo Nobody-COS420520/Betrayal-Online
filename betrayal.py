@@ -168,7 +168,7 @@ def on_key_up(key, mod):
                         case default:
                             turn = STAGEOBJ.turn[len(STAGEOBJ.turn)-1]
                             if turn.turn_phase == 1:
-                                STAGEOBJ.end_turn()
+                                turn.finalize_rotation()
                 case 113:           # Q
                     match(mod):
                         case 4097:  # left shift

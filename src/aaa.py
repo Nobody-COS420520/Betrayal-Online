@@ -11,6 +11,7 @@ import json
 import os.path
 import random
 import sqlite3
+import tkinter.messagebox
 
 
 WIDTH = 1920
