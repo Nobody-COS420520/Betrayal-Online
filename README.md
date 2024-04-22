@@ -8,6 +8,21 @@ Betrayal Online
 
  Demo Version 0.1
  
+ 
+ You need to have python installed and the python scripts available in your path.
+ 
+ To run: 
+	Run "Betrayal_Online.py" with Python,
+	if you do not have python scripts available in your path
+	you will get an error like:
+		
+		'pip' is not recognized as an internal or external command, operable program or batch file.
+		
+	
+ 
+ 
+ 
+ 
  Select "DEMO" from Main Menu to begin:
  
  - Use Arrow Keys to move around game board

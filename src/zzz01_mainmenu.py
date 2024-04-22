@@ -17,7 +17,7 @@ class MainMenu():
                            midtop=(WIDTH/2-WIDTH/48, HEIGHT/10-HEIGHT/21)))
         self.option_tree = Menu_Tree()
 
-        self.option_tree.add("ONLINE", rect=Rect(
+        self.option_tree.add("DEMO", rect=Rect(
             (int(WIDTH/2.19), int(HEIGHT/2.2)), (int(WIDTH/11.64), int(HEIGHT/13.5))))
         self.option_tree.add("LOCAL VS", rect=Rect(
             (int(WIDTH/2.29), int(HEIGHT/1.86)), (int(WIDTH/8.17), int(HEIGHT/13.5))))
