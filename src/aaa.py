@@ -1,14 +1,17 @@
+# pylint: disable=C0301, E0602, W0603
 """  The first file concatted into the final .py that gets run  """
 #    pygame zero only works with one module so all .py in /src are
 #    concatenated into one single .py module upon docker run/start.
 
 import pgzrun
-from pygame import Rect, key, surfarray
+import pygame
 import math
 import collections
-import os.path
-import sqlite3
 import json
+import os.path
+import random
+import sqlite3
+import tkinter.messagebox
 
 
 WIDTH = 1920
@@ -21,3 +24,4 @@ GAME_STAGE = -1
 # 1 = main menu
 # 2 = mid game
 STAGEOBJ = None			# Holds object for current stage
+DBURL = "src/db/betrayal.db"

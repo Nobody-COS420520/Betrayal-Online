@@ -108,3 +108,17 @@ class Text():
                          widthem=self.widthem, lineheight=self.lineheight, align=self.align,
                          owidth=self.owidth, ocolor=self.ocolor, shadow=self.shadow, scolor=self.scolor,
                          gcolor=self.gcolor, alpha=self.alpha, anchor=self.anchor, angle=self.angle)
+
+    def midgame_default(self, p_menu_obj, p_fontsize = 52):
+        """ Sets Text obj to default settings for the MidGame stage """
+        self.color = "#f27b00"
+        self.fontname = "lastman.ttf"
+        self.fontsize = p_fontsize
+        self.ocolor = "white"
+        self.owidth = 500  # not working
+        self.shadow = (0, 1)
+        self.scolor = "#443f12" #
+        self.highlight_color =  "#443f32"#"black"
+        p_menu_obj.on_hover = Midgame.on_hover
+        p_menu_obj.on_offhover = Midgame.on_offhover
+        p_menu_obj.on_mouseup = Midgame.on_mouseup

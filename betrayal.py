@@ -22,15 +22,31 @@ def on_mouse_move(pos, rel, buttons):
                 if prev is not None:
                     prev.on_offhover(prev)
         case 2:     # Midgame stage
-            prev = STAGEOBJ.get_grid_loc((pos[0]-rel[0], pos[1]-rel[1]))
-            current = STAGEOBJ.get_grid_loc(pos)
+            prev_isgrid = False
+            current_isgrid = False
+            # If mouse on/off of MenuObject
+            # Then set current/prev to MneuObject
+            # Else check if mouse on/off GridSpace
+            prev = Menu_Tree.get_menu_object(
+                STAGEOBJ, (pos[0]-rel[0], pos[1]-rel[1]))
+            if prev is not None:
+                prev.on_offhover(prev)
+            else:
+                prev = STAGEOBJ.get_grid_loc((pos[0]-rel[0], pos[1]-rel[1]))
+                prev_isgrid = True
+            current = Menu_Tree.get_menu_object(STAGEOBJ, pos)
+            if current is not None:
+                current.on_hover(current)
+            else:
+                current = STAGEOBJ.get_grid_loc(pos)
+                current_isgrid = True
             if current != prev:
                 #   validity check if current is in the range of possible Midgame.grid squares
-                if current[0] < len(STAGEOBJ.grid) and current[1] < len(STAGEOBJ.grid[0]):
+                if current_isgrid and current[0] < len(STAGEOBJ.grid) and current[1] < len(STAGEOBJ.grid[0]):
                     # Midgame.grid[current[0]][current[1]].on_hover(current[0], current[1])
                     STAGEOBJ.grid[current[0]][current[1]].on_hover()
                 #   this validity check is necessary if mouse is reentering grid from outside
-                if prev[0] < len(STAGEOBJ.grid) and prev[1] < len(STAGEOBJ.grid[0]):
+                if prev_isgrid and prev[0] < len(STAGEOBJ.grid) and prev[1] < len(STAGEOBJ.grid[0]):
                     STAGEOBJ.grid[prev[0]][prev[1]].on_offhover()
 
 
@@ -71,11 +87,19 @@ def on_mouse_up(pos, button):
                     current.on_mouseup(current)
             pass
         case 2:  # Midgame Stage
-            current = STAGEOBJ.get_grid_loc(pos)
-            #   validity check if left mousebutton and current is in the range of possible GRID squares
-            if button == 1 and current[0] < len(STAGEOBJ.grid) and current[1] < len(STAGEOBJ.grid[0]):
-                STAGEOBJ.grid[current[0]][current[1]].on_mouseup(
-                    current[0], current[1])
+            if button == 1:
+                # If user clicks on a menu object
+                # Then do only menu_object.on_mouseup()
+                # Else, do GridSpace.on_mouseup()
+                current = Menu_Tree.get_menu_object(STAGEOBJ, pos)
+                if current is not None:
+                    current.on_mouseup(current)
+                else:
+                    current = STAGEOBJ.get_grid_loc(pos)
+                    #   validity check if left mousebutton and current is in the range of possible GRID squares
+                    if current[0] < len(STAGEOBJ.grid) and current[1] < len(STAGEOBJ.grid[0]):
+                        STAGEOBJ.grid[current[0]][current[1]].on_mouseup(
+                            current[0], current[1])
 
 
 def on_key_down(key, mod, unicode):
@@ -95,18 +119,26 @@ def on_key_down(key, mod, unicode):
             pass
         case 2:                     # midgame stage
             match(key):
-                case 1073741916:    # numpad 4
-                    STAGEOBJ.cam_move_hori(150)
-                case 1073741918:    # numpad 6
-                    STAGEOBJ.cam_move_hori(-150)
-                case 1073741920:    # numpad 8
-                    STAGEOBJ.cam_move_vert(150)
-                case 1073741914:    # numpad 2
-                    STAGEOBJ.cam_move_vert(-150)
                 case 1073741921:    # numpad 9
                     STAGEOBJ.zoom(1.25)
+                case 1073741920:    # numpad 8
+                    STAGEOBJ.cam_move_vert(150)
                 case 1073741919:    # numpad 7
                     STAGEOBJ.zoom(0.8)
+                case 1073741918:    # numpad 6
+                    STAGEOBJ.cam_move_hori(-150)
+                case 1073741916:    # numpad 4
+                    STAGEOBJ.cam_move_hori(150)
+                case 1073741915:    # numpad 3
+                    if (STAGEOBJ.floor_index+1 < 3):
+                        STAGEOBJ.display_floorgrid(STAGEOBJ.floor_index+1)
+                        STAGEOBJ.floor_index += 1
+                case 1073741914:    # numpad 2
+                    STAGEOBJ.cam_move_vert(-150)
+                case 1073741913:    # numpad 1
+                    if (STAGEOBJ.floor_index-1 >= 0):
+                        STAGEOBJ.display_floorgrid(STAGEOBJ.floor_index-1)
+                        STAGEOBJ.floor_index -= 1
 
 
 def on_key_up(key, mod):
@@ -131,6 +163,12 @@ def on_key_up(key, mod):
                             GAME_STAGE = 0
         case 2:                     # Midgame Stage
             match(key):
+                case 13:            # Enter key
+                    match(mod):
+                        case default:
+                            turn = STAGEOBJ.turn[len(STAGEOBJ.turn)-1]
+                            if turn.turn_phase == 1:
+                                turn.finalize_rotation()
                 case 113:           # Q
                     match(mod):
                         case 4097:  # left shift
@@ -144,6 +182,42 @@ def on_key_up(key, mod):
                     match(mod):
                         case 4097:  # left shift
                             GAME_STAGE = 0
+                case 1073741906:    # Up Arrow
+                    match(mod):
+                        case 4097:  # left shift
+                            turn = STAGEOBJ.turn[len(STAGEOBJ.turn)-1]
+                            if turn.turn_phase == 0:    # Movement Phase
+                                turn.move("Special", 5)
+                        case default:
+                            turn = STAGEOBJ.turn[len(STAGEOBJ.turn)-1]
+                            if turn.turn_phase == 0:    # Movement Phase
+                                turn.move("Up")
+                case 1073741904:    # Left Arrow
+                    match(mod):
+                        case default:
+                            turn = STAGEOBJ.turn[len(STAGEOBJ.turn)-1]
+                            if turn.turn_phase == 0:    # Movement Phase
+                                turn.move("Left")
+                            elif turn.turn_phase == 1:
+                                turn.rotate_focus_by_doors("Left")
+                case 1073741903:    # RIGHT Arrow
+                    match(mod):
+                        case default:
+                            turn = STAGEOBJ.turn[len(STAGEOBJ.turn)-1]
+                            if turn.turn_phase == 0:    # Movement Phase
+                                turn.move("Right")
+                            elif turn.turn_phase == 1:
+                                turn.rotate_focus_by_doors("Right")
+                case 1073741905:    # Down Arrow
+                    match(mod):
+                        case 4097:  # left shift
+                            turn = STAGEOBJ.turn[len(STAGEOBJ.turn)-1]
+                            if turn.turn_phase == 0:    # Movement Phase
+                                turn.move("Special", 4)
+                        case default:
+                            turn = STAGEOBJ.turn[len(STAGEOBJ.turn)-1]
+                            if turn.turn_phase == 0:    # Movement Phase
+                                turn.move("Down")
 
         case default:               # no game stage
             match(key):
@@ -172,8 +246,8 @@ def update(time_elapsed):
     # Also check if this is first time opening and create everything important
     if GAME_STAGE == -1:
         GAME_STAGE = 1
-        if (not os.path.exists('src/db/char.db')):
-            db = DBManager("src/db/char.db")
+        if (not os.path.exists(DBURL)):
+            db = DBManager(DBURL)
             db.create_all_db()
             db.close()
             db = None
@@ -222,12 +296,25 @@ def draw():
                 # pylint: disable-next=C0200
                 for x in range(len(STAGEOBJ.grid)):
                     for y in range(len(STAGEOBJ.grid[x])):
-                        if STAGEOBJ.grid[x][y].highlight_flag != 1:
+                        if STAGEOBJ.grid[x][y].actor is not None:
+                            STAGEOBJ.grid[x][y].actor.draw()
+                        elif STAGEOBJ.grid[x][y].highlight_flag != 1:
                             screen.draw.rect(
                                 STAGEOBJ.grid[x][y].rect, (255, 0, 0))
                         else:
                             screen.draw.rect(
                                 STAGEOBJ.grid[x][y].rect, STAGEOBJ.grid[x][y].highlight_color)
+            for x in STAGEOBJ.turn_q:
+                if x.current_floor == STAGEOBJ.floor_index:
+                    x.actor.draw()
+            STAGEOBJ.option_tree.draw()
+            """for x in STAGEOBJ.option_tree.contents:
+                if x.highlight_flag != 1:
+                    screen.draw.rect(x.rect, (255, 0, 0))
+                else:
+                    screen.draw.rect(x.rect, x.text.highlight_color)"""
+            for x in STAGEOBJ.foreground_ui:
+                STAGEOBJ.foreground_ui[x].draw()
 
 
 pgzrun.go()
