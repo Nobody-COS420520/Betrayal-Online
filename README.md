@@ -6,7 +6,11 @@ Betrayal Online
 
 ##### A video game version of the board game, Betrayal at the House on the Hill.
 
- Demo Version 0.1
+
+DELIVERABLE 5 TESTS LOCATED IN "/tests"
+
+
+ Demo Version 0.1.0
  
  
  You need to have python installed and the python scripts available in your path.
