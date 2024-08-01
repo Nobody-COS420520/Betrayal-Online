@@ -45,23 +45,26 @@ class GameTurn():
         # p_foreground_ui is only ment to be passed during constructor of MidGameStage,
         # when STAGEOBJ is still being assigned
 
-        stage_instance.foreground_ui["card"] = Actor(p_character.card, bottomright=(
-            WIDTH-(WIDTH//120), HEIGHT-(HEIGHT//90)), anchor=("right", "bottom"))
+        stage_instance.foreground_ui["card"] = Actor(p_character.card, topleft=(
+            WIDTH-(WIDTH//4), HEIGHT-(HEIGHT//2.35)))
         stage_instance.foreground_ui["card"]._surf = pygame.transform.scale(
             stage_instance.foreground_ui["card"]._surf, (WIDTH//4, HEIGHT//2.384))
         stage_instance.foreground_ui["card"]._update_pos()
-        stage_instance.foreground_ui["next_icon"] = Actor(stage_instance.turn_q[1].icon, topright=(
-            WIDTH+(WIDTH//23.4), -1*(HEIGHT//72)), anchor=("right", "top"))
+        stage_instance.foreground_ui["next_icon"] = Actor(stage_instance.turn_q[1].icon, topleft=(
+            WIDTH-(WIDTH//14.22)-(WIDTH//80), (HEIGHT//72)))
         stage_instance.foreground_ui["next_icon"]._surf = pygame.transform.scale(
-            stage_instance.foreground_ui["next_icon"]._surf, (WIDTH//12.3, HEIGHT//6.9))
+            stage_instance.foreground_ui["next_icon"]._surf, (WIDTH//14.22, HEIGHT//8))
         stage_instance.foreground_ui["next_icon"]._update_pos()
+        # Old lines of code, retained in order to have an older version available to fall back to
+        #stage_instance.foreground_ui["next_icon"]._surf, (WIDTH//21.36, HEIGHT//12.024))
+        #stage_instance.foreground_ui["next_icon"].topleft = (WIDTH-(WIDTH//25.6), (HEIGHT//72))
         stage_instance.option_tree.delete(
             coords=((WIDTH//1.268), (HEIGHT//6.0674)))
         working_menu_obj = stage_instance.option_tree.add(str(self.remaining_moves), Rect(
             (WIDTH-(WIDTH//4.9)-(WIDTH//14.55), HEIGHT//10), (WIDTH//14.55, HEIGHT//7)))
         working_menu_obj.text.midgame_default(working_menu_obj)
         working_menu_obj.text.fontname = "butcherman-regular.ttf"
-        working_menu_obj.text.fontsize = 82
+        working_menu_obj.text.fontsize = 82*(HEIGHT/1080)
         working_menu_obj.on_hover = lambda x: 1
         working_menu_obj.on_offhover = lambda x: 1
         working_menu_obj.text.color = "#ddc94e"

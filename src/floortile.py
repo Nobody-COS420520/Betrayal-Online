@@ -178,27 +178,35 @@ class FloorTileLeaf(FloorTileComponent):
         start_x = self.gridspace.get_x()
         start_y = self.gridspace.get_y()
         width = self.gridspace.actor.width
+        padding = 0.2    # percent for ONE icon edge's padding
 
         # split floortile space into ceil(sqrt(n)) columns (num_hori)
         # and ceil(n/ceil(sqrt(n))) rows (num_vert)
         n = len(self.inhabitants)  # for readability
         num_hori = math.ceil(n**(0.5))
         num_vert = math.ceil(n/num_hori)
-        l_width = self.gridspace.actor.width//num_hori
+        # padding_hori and vert are the horizontal and vertical padding 
+        # between edge of floortile and inner contents. 
+        # they are in decimal percentage format
+        padding_hori = 0.215
+        padding_hori = padding_hori*self.gridspace.actor.width
+        padding_vert = 0.215
+        padding_vert = padding_vert*self.gridspace.actor.height
+        l_width = (self.gridspace.actor.width-2*padding_hori)//num_hori
         # Might not need l_height due to squares but is here in case things change at some weird point
-        l_height = self.gridspace.actor.height//num_vert
+        l_height = (self.gridspace.actor.height-2*padding_vert)//num_vert
 
         h_count = 0
         v_count = 0
         for x in self.inhabitants:
             # Setup hori position
-            working_x = self.gridspace.actor.x + h_count*l_width
+            working_x = self.gridspace.actor.x + h_count*l_width + padding_hori
             h_count += 1
             if h_count >= num_hori:
                 h_count = 0
 
             # Setup vert position
-            working_y = self.gridspace.actor.y + v_count*l_height
+            working_y = self.gridspace.actor.y + v_count*l_height + padding_vert
             v_count += 1
             if v_count >= num_vert:
                 v_count = 0

@@ -1,2 +1,4 @@
-pgzero>=1.2.1
-tk>=0.1.0
+pgzero==1.2.1
+pylint
+pytest
+tk==0.1.0

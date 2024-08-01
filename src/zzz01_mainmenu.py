@@ -12,12 +12,19 @@ class MainMenu():
     def __init__(self):
         """ MainMenu class constructor """
         self.actors = []
-        self.actors.append(Actor("bo_specific/main-menu-bg-1920x1080.png"))
+        self.actors.append(Actor("bo_specific/main-menu-bg-1920x1080.png", topleft=(0,0), anchor=(0,0)))
+        self.actors[0]._surf = pygame.transform.scale(self.actors[0]._surf, (WIDTH, HEIGHT))
+        self.actors[0]._update_pos()
+        
         self.actors.append(Actor("bo_specific/betrayal_logo_transparent_1920x1080.png",
-                           midtop=(WIDTH/2-WIDTH/48, HEIGHT/10-HEIGHT/21)))
+                           topleft=(WIDTH*0.284, HEIGHT*0.05238)))
+    #WIDTH*0.48
+        self.actors[1]._surf = pygame.transform.scale(self.actors[1]._surf, (WIDTH*0.39, HEIGHT*0.19))
+        self.actors[1]._update_pos()
+
         self.option_tree = Menu_Tree()
 
-        self.option_tree.add("DEMO", rect=Rect(
+        self.option_tree.add("ONLINE", rect=Rect(
             (int(WIDTH/2.19), int(HEIGHT/2.2)), (int(WIDTH/11.64), int(HEIGHT/13.5))))
         self.option_tree.add("LOCAL VS", rect=Rect(
             (int(WIDTH/2.29), int(HEIGHT/1.86)), (int(WIDTH/8.17), int(HEIGHT/13.5))))
@@ -33,7 +40,7 @@ class MainMenu():
             x.text.center = (WIDTH/2, incrementing_height)
             x.text.color = "#ddc94e"
             x.text.fontname = "lastman.ttf"
-            x.text.fontsize = 64
+            x.text.fontsize = 64*(HEIGHT/1080)      # 64 is default font for a screen height of 1080, this line scales the text to window height
             x.text.ocolor = "white"
             x.text.owidth = 500  # not working
             x.text.shadow = (0, 1)
@@ -59,12 +66,12 @@ class MainMenu():
     @staticmethod
     def on_hover(p_menu_object):
         """ Executes on hover over MainMenu menu object """
-        p_menu_object.text.fontsize = 82
+        p_menu_object.text.fontsize = 82*(HEIGHT/1080)
 
     @staticmethod
     def on_offhover(p_menu_object):
         """ Executes on offhover over MainMenu menu object """
-        p_menu_object.text.fontsize = 64
+        p_menu_object.text.fontsize = 64*(HEIGHT/1080)
         p_menu_object.highlight_flag = 0
 
     @staticmethod

@@ -14,14 +14,14 @@ import sqlite3
 import tkinter.messagebox
 
 
-WIDTH = 1920
-HEIGHT = 1080
+WIDTH = 1280
+HEIGHT = 720
 TITLE = "Betrayal Online"
 PREV_GAME_STAGE = -1
 GAME_STAGE = -1
 #   -1 = used to detect when program is first opened (gets changed in first loop of update())
 # 0 = program setup (pre main menu)
 # 1 = main menu
-# 2 = mid game
+# 2 = mid game (during an active game)
 STAGEOBJ = None			# Holds object for current stage
 DBURL = "src/db/betrayal.db"

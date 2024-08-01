@@ -48,11 +48,11 @@ class Midgame():
                 self.turn_q.append(Character(x))
         # Creation of midgame MenuTree
         self.option_tree = Menu_Tree()
-        self.option_tree.add("Menu", Rect(
+        self.option_tree.add("Menu", Rect(                  # option_tree[0]
             (WIDTH//71.1, HEIGHT//37.24), (WIDTH//13.24, HEIGHT//16.6)))
-        self.option_tree.add("Next", Rect(
+        self.option_tree.add("Next", Rect(                  # option_tree[1]
             (WIDTH//1.16, 0), (WIDTH//7.11, HEIGHT//7.4)))
-        self.option_tree.add("moves remaining", Rect(
+        self.option_tree.add("moves remaining", Rect(       # option_tree[2]
             (WIDTH-(WIDTH//4.9), HEIGHT//10), (WIDTH//4.9, HEIGHT//6.3)))
         self.option_tree.contents[0].adjacencies[1] = self.option_tree.contents[1]
         self.option_tree.contents[0].adjacencies[2] = self.option_tree.contents[1]
@@ -60,9 +60,10 @@ class Midgame():
         self.option_tree.contents[1].adjacencies[2] = self.option_tree.contents[0]
         for x in self.option_tree.contents:
             x.text.midgame_default(x)
+            x.text.fontsize = x.text.fontsize*(HEIGHT/1080)
             x.text.top = self.option_tree.contents[0].rect.top
         self.option_tree.contents[0].text.centerx = self.option_tree.contents[0].rect.centerx
-        self.option_tree.contents[1].text.right = WIDTH-(WIDTH//14.77)
+        self.option_tree.contents[1].text.right = WIDTH-(WIDTH//12) # 11.77
         self.option_tree.contents[1].on_mouseup = lambda x: self.end_turn()
         self.option_tree.contents[2].on_hover = lambda x: 1
         self.option_tree.contents[2].on_offhover = lambda x: 1
@@ -80,7 +81,7 @@ class Midgame():
         # Setup Demo
         self.setup_demo()
 
-    ##### DEMO STUFF #####    
+    ##### \/\/ DEMO STUFF \/\/ #####
     def setup_demo(self):
         """ Demo stuff to be done in the MidGame initialization """
         for x in self.turn_q:
@@ -102,7 +103,7 @@ if test() == True:
         print(str(winning_affiliation) + "s win")
         GAME_STAGE = 1
         tkinter.messagebox.showinfo("Game Finish", str(winning_affiliation) + "s Win!")
-    ##### DEMO STUFF #####
+    ##### /\/\ DEMO STUFF /\/\ #####
 
     class GridSquare():
         """ Holds functions for a Grid Square's events and references to neighbor Grid Squares"""
@@ -206,12 +207,12 @@ if test() == True:
     @staticmethod
     def on_hover(p_menu_object):
         """ Executes on hover over MidGame menu object """
-        p_menu_object.text.fontsize = 64
+        p_menu_object.text.fontsize = 64*(HEIGHT/1080)
 
     @staticmethod
     def on_offhover(p_menu_object):
         """ Executes on offhover over MidGame menu object """
-        p_menu_object.text.fontsize = 52
+        p_menu_object.text.fontsize = 52*(HEIGHT/1080)
         p_menu_object.highlight_flag = 0
 
     @staticmethod
